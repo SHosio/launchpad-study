@@ -11,6 +11,7 @@ export default function FollowupPage() {
   const navigate = useNavigate()
   const prolificPid = searchParams.get('PROLIFIC_PID') || ''
   const [participant, setParticipant] = useState<Participant | null>(null)
+  const [goalText, setGoalText] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -18,11 +19,28 @@ export default function FollowupPage() {
       setError('Missing Prolific ID.')
       return
     }
-    api.lookupParticipant(prolificPid).then((p) => {
-      if (!p) setError('We could not find your original session. Please contact the researcher.')
-      else setParticipant(p)
+    api.lookupParticipant(prolificPid).then(async (p) => {
+      if (!p) {
+        setError('We could not find your original session. Please contact the researcher.')
+        return
+      }
+      setParticipant(p)
+      try {
+        const { goal_text } = await api.getParticipantGoal(p.id)
+        setGoalText(goal_text)
+      } catch {
+        setGoalText('(Could not retrieve your goal)')
+      }
     })
   }, [prolificPid])
+
+  function handleSurveyAfterRender() {
+    // Inject the original goal text into the HTML element on the recognition page
+    if (goalText) {
+      const el = document.getElementById('original-goal-display')
+      if (el) el.textContent = goalText
+    }
+  }
 
   async function handleComplete(data: Record<string, unknown>) {
     if (participant) {
@@ -33,21 +51,26 @@ export default function FollowupPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-950 px-4">
+      <div className="flex items-center justify-center min-h-screen bg-white px-4">
         <Card className="max-w-md p-8 text-center">
-          <p className="text-zinc-400">{error}</p>
+          <p className="text-zinc-600">{error}</p>
         </Card>
       </div>
     )
   }
 
-  if (!participant) {
-    return <div className="flex items-center justify-center min-h-screen text-zinc-400">Loading...</div>
+  if (!participant || goalText === null) {
+    return <div className="flex items-center justify-center min-h-screen text-zinc-500">Loading...</div>
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 py-8 px-4">
-      <SurveyPage surveyJson={followupSurvey} onComplete={handleComplete} title="One-Week Follow-Up" />
+    <div className="min-h-screen bg-white text-zinc-900 py-8 px-4">
+      <SurveyPage
+        surveyJson={followupSurvey}
+        onComplete={handleComplete}
+        title="One-Week Follow-Up"
+        onCurrentPageChanged={handleSurveyAfterRender}
+      />
     </div>
   )
 }

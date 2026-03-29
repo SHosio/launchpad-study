@@ -6,29 +6,69 @@ const likertChoices = [
   { value: 5, text: "Strongly Agree" },
 ];
 
+const recallConfidenceChoices = [
+  { value: 1, text: "1 — Not at all" },
+  { value: 2, text: "2" },
+  { value: 3, text: "3" },
+  { value: 4, text: "4 — Somewhat" },
+  { value: 5, text: "5" },
+  { value: 6, text: "6" },
+  { value: 7, text: "7 — Perfectly" },
+];
+
 export const followupSurvey = {
   showProgressBar: "top",
   pages: [
     {
-      name: "goal_recall",
+      name: "goal_recall_confidence",
       title: "Goal Recall",
       description:
-        "Welcome back. It has been approximately one week since you set your goal. Please answer the following questions without referring to any prior notes.",
+        "Welcome back. It has been approximately one week since you set your goal.",
       elements: [
         {
-          type: "comment",
-          name: "goal_recall",
+          type: "radiogroup",
+          name: "recall_confidence",
           title:
-            "Without looking back at any notes, please write down the goal you set last week as specifically as you can remember.",
+            "Without looking back at any notes, how well do you remember the specific goal you set last week?",
           isRequired: true,
+          choices: recallConfidenceChoices,
+          colCount: 7,
         },
+      ],
+    },
+    {
+      name: "goal_recall_recognition",
+      title: "Goal Recall",
+      description:
+        "Here is the goal you set last week. Now that you see it, you can update your answer.",
+      elements: [
+        {
+          type: "html",
+          name: "original_goal_display",
+          html: '<div style="padding: 16px; border-radius: 8px; background: #f4f4f5; border: 1px solid #e4e4e7; font-size: 14px; color: #27272a;" id="original-goal-display">Loading your goal...</div>',
+        },
+        {
+          type: "radiogroup",
+          name: "recall_recognition",
+          title:
+            "Now that you see your original goal, how accurately did you actually remember it?",
+          isRequired: true,
+          choices: recallConfidenceChoices,
+          colCount: 7,
+        },
+      ],
+    },
+    {
+      name: "goal_attainment",
+      title: "Goal Progress",
+      elements: [
         {
           type: "radiogroup",
           name: "goal_achieved",
           title: "How would you characterise your progress toward this goal?",
           isRequired: true,
           choices: [
-            { value: "yes", text: "Yes" },
+            { value: "yes", text: "Yes, I achieved it" },
             { value: "partially", text: "Partially" },
             { value: "no", text: "No" },
           ],
@@ -43,89 +83,27 @@ export const followupSurvey = {
           min: 0,
           max: 100,
         },
-        {
-          type: "comment",
-          name: "behavioral_specificity",
-          title:
-            "Describe one specific thing you did toward this goal in the past week.",
-          isRequired: true,
-        },
       ],
     },
     {
-      name: "ngse_fu",
-      title: "General Self-Efficacy",
-      description:
-        "Please indicate how much you agree or disagree with each of the following statements.",
+      name: "self_efficacy_fu",
+      title: "Goal Self-Efficacy",
       elements: [
         {
           type: "radiogroup",
-          name: "ngse_fu_1",
-          title:
-            "I will be able to achieve most of the goals that I have set for myself.",
+          name: "fu_goal_self_efficacy",
+          title: "How confident are you that you can achieve this goal?",
           isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_2",
-          title:
-            "When facing difficult tasks, I am certain that I will accomplish them.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_3",
-          title:
-            "In general, I think that I can obtain outcomes that are important to me.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_4",
-          title:
-            "I believe I can succeed at most any endeavor to which I set my mind.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_5",
-          title: "I will be able to successfully overcome many challenges.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_6",
-          title:
-            "I am confident that I can perform effectively on many different tasks.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_7",
-          title: "Compared to other people, I can do most tasks very well.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
-        },
-        {
-          type: "radiogroup",
-          name: "ngse_fu_8",
-          title: "Even when things are tough, I can perform quite well.",
-          isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
+          choices: [
+            { value: 1, text: "1 — Not at all confident" },
+            { value: 2, text: "2" },
+            { value: 3, text: "3" },
+            { value: 4, text: "4 — Somewhat confident" },
+            { value: 5, text: "5" },
+            { value: 6, text: "6" },
+            { value: 7, text: "7 — Extremely confident" },
+          ],
+          colCount: 7,
         },
       ],
     },
@@ -175,23 +153,6 @@ export const followupSurvey = {
           isRequired: true,
           choices: likertChoices,
           colCount: 5,
-        },
-      ],
-    },
-    {
-      name: "structured_approach",
-      title: "Approach",
-      elements: [
-        {
-          type: "radiogroup",
-          name: "used_structured_approach",
-          title:
-            "Did you use any structured approach or technique when working toward your goal over the past week?",
-          isRequired: true,
-          choices: [
-            { value: "yes", text: "Yes" },
-            { value: "no", text: "No" },
-          ],
         },
       ],
     },

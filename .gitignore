@@ -4,4 +4,5 @@ dist-server
 data/*.db
 data/*.db-wal
 data/*.db-shm
+docs/
 .env

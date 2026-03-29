@@ -67,11 +67,10 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS followup_responses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     participant_id INTEGER NOT NULL REFERENCES participants(id),
-    goal_recall TEXT,
+    recall_confidence INTEGER,
+    recall_recognition INTEGER,
     goal_attainment TEXT,
     attainment_percentage INTEGER,
-    behavioral_specificity TEXT,
-    structured_use TEXT,
     responses_json TEXT NOT NULL,
     completed_at TEXT NOT NULL DEFAULT (datetime('now'))
   );

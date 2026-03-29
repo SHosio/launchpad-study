@@ -6,39 +6,14 @@ const likertChoices = [
   { value: 5, text: "Strongly Agree" },
 ];
 
-const ngseItems = [
-  {
-    value: "ngse_1",
-    text: "I will be able to achieve most of the goals that I have set for myself.",
-  },
-  {
-    value: "ngse_2",
-    text: "When facing difficult tasks, I am certain that I will accomplish them.",
-  },
-  {
-    value: "ngse_3",
-    text: "In general, I think that I can obtain outcomes that are important to me.",
-  },
-  {
-    value: "ngse_4",
-    text: "I believe I can succeed at most any endeavor to which I set my mind.",
-  },
-  {
-    value: "ngse_5",
-    text: "I will be able to successfully overcome many challenges.",
-  },
-  {
-    value: "ngse_6",
-    text: "I am confident that I can perform effectively on many different tasks.",
-  },
-  {
-    value: "ngse_7",
-    text: "Compared to other people, I can do most tasks very well.",
-  },
-  {
-    value: "ngse_8",
-    text: "Even when things are tough, I can perform quite well.",
-  },
+const selfEfficacyChoices = [
+  { value: 1, text: "1 — Not at all confident" },
+  { value: 2, text: "2" },
+  { value: 3, text: "3" },
+  { value: 4, text: "4 — Somewhat confident" },
+  { value: 5, text: "5" },
+  { value: 6, text: "6" },
+  { value: 7, text: "7 — Extremely confident" },
 ];
 
 const kgcItems = [
@@ -68,55 +43,27 @@ export const preMeasureSurvey = {
   showProgressBar: "top",
   pages: [
     {
-      name: "ngse",
-      title: "General Self-Efficacy",
+      name: "self_efficacy_and_commitment",
+      title: "Your Goal",
       description:
-        "Please indicate how much you agree or disagree with each of the following statements.",
-      elements: ngseItems.map((item) => ({
-        type: "radiogroup",
-        name: item.value,
-        title: item.text,
-        isRequired: true,
-        choices: likertChoices,
-        colCount: 5,
-      })),
-    },
-    {
-      name: "kgc",
-      title: "Goal Commitment",
-      description:
-        "Thinking about the goal you described earlier, please indicate how much you agree or disagree with each statement.",
-      elements: kgcItems.map((item) => ({
-        type: "radiogroup",
-        name: item.value,
-        title: item.text,
-        isRequired: true,
-        choices: likertChoices,
-        colCount: 5,
-      })),
-    },
-    {
-      name: "single_items",
-      title: "Goal Clarity & Readiness",
+        "Thinking about the goal you have in mind, please answer the following.",
       elements: [
         {
           type: "radiogroup",
-          name: "goal_clarity",
-          title:
-            "I have a clear picture of what success looks like for this goal.",
+          name: "goal_self_efficacy",
+          title: "How confident are you that you can achieve this goal?",
           isRequired: true,
-          choices: likertChoices,
-          colCount: 5,
+          choices: selfEfficacyChoices,
+          colCount: 7,
         },
-        {
+        ...kgcItems.map((item) => ({
           type: "radiogroup",
-          name: "activation",
-          title:
-            "I feel energized and ready to start working on this goal right now.",
+          name: item.value,
+          title: item.text,
           isRequired: true,
           choices: likertChoices,
           colCount: 5,
-        },
+        })),
         {
           type: "radiogroup",
           name: "baseline_energy",

@@ -7,40 +7,47 @@ interface SurveyPageProps {
   surveyJson: object
   onComplete: (results: Record<string, unknown>) => void
   title?: string
+  onCurrentPageChanged?: () => void
 }
 
-export function SurveyPage({ surveyJson, onComplete, title }: SurveyPageProps) {
+export function SurveyPage({ surveyJson, onComplete, title, onCurrentPageChanged }: SurveyPageProps) {
   const handleComplete = useCallback((sender: Model) => {
     onComplete(sender.data)
   }, [onComplete])
 
   const survey = new Model(surveyJson)
 
-  // Dark theme overrides
+  // Light theme overrides
   survey.applyTheme({
     cssVariables: {
-      '--sjs-general-backcolor': 'rgba(0,0,0,0)',
-      '--sjs-general-backcolor-dim': '#18181b',
-      '--sjs-general-forecolor': '#e4e4e7',
-      '--sjs-general-forecolor-light': '#a1a1aa',
+      '--sjs-general-backcolor': 'rgba(255,255,255,0)',
+      '--sjs-general-backcolor-dim': '#f9fafb',
+      '--sjs-general-forecolor': '#18181b',
+      '--sjs-general-forecolor-light': '#52525b',
       '--sjs-primary-backcolor': '#f97316',
       '--sjs-primary-forecolor': '#fff',
       '--sjs-base-unit': '8px',
       '--sjs-corner-radius': '8px',
       '--sjs-shadow-small': 'none',
-      '--sjs-border-default': '#27272a',
-      '--sjs-border-light': '#27272a',
-      '--sjs-questionpanel-backcolor': '#18181b',
-      '--sjs-editorpanel-backcolor': '#27272a',
-      '--sjs-editor-background': '#27272a',
+      '--sjs-border-default': '#e4e4e7',
+      '--sjs-border-light': '#e4e4e7',
+      '--sjs-questionpanel-backcolor': '#ffffff',
+      '--sjs-editorpanel-backcolor': '#f9fafb',
+      '--sjs-editor-background': '#ffffff',
     },
   } as any)
 
   survey.onComplete.add(handleComplete)
+  if (onCurrentPageChanged) {
+    survey.onCurrentPageChanged.add(() => {
+      // Defer to allow SurveyJS to render the new page DOM
+      setTimeout(onCurrentPageChanged, 0)
+    })
+  }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      {title && <h1 className="mb-6 text-center font-display text-2xl font-bold text-zinc-100">{title}</h1>}
+    <div className="mx-auto max-w-4xl">
+      {title && <h1 className="mb-6 text-center font-display text-2xl font-bold text-zinc-900">{title}</h1>}
       <Survey model={survey} />
     </div>
   )

@@ -65,13 +65,13 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
     <>
       <Card className="mx-auto max-w-xl p-6 space-y-4">
         <div className="text-center">
-          <h2 className="font-display text-xl font-bold text-zinc-100">AI Coaching</h2>
+          <h2 className="font-display text-xl font-bold text-zinc-900">AI Coaching</h2>
         </div>
 
         {loading && !result && (
           <div className="flex items-center justify-center py-8">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-orange-500 border-t-transparent" />
-            <span className="ml-2 text-sm text-zinc-400">Evaluating your goal...</span>
+            <span className="ml-2 text-sm text-zinc-500">Evaluating your goal...</span>
           </div>
         )}
 
@@ -95,10 +95,10 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
               })}
             </div>
 
-            <div className="rounded-lg bg-zinc-800/50 p-4 space-y-2">
-              <p className="text-sm text-zinc-200">{result.feedback}</p>
+            <div className="rounded-lg bg-gray-50 border border-zinc-200 p-4 space-y-2">
+              <p className="text-sm text-zinc-800">{result.feedback}</p>
               {result.overall !== 'strong' && result.suggestion && (
-                <p className="text-sm text-orange-400 font-medium">{result.suggestion}</p>
+                <p className="text-sm text-orange-600 font-medium">{result.suggestion}</p>
               )}
             </div>
 
@@ -109,7 +109,7 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
             </Button>
             <button
               onClick={handleSkip}
-              className="w-full text-center text-xs text-zinc-500 hover:text-zinc-300 transition-colors py-2"
+              className="w-full text-center text-xs text-zinc-500 hover:text-zinc-700 transition-colors py-2"
             >
               {result.overall === 'strong' ? 'Continue \u2192' : 'This is good enough'}
             </button>

@@ -13,6 +13,15 @@ router.post('/', (req, res) => {
   res.json({ goal_id: result.lastInsertRowid })
 })
 
+router.get('/by-participant/:participantId', (req, res) => {
+  const goal = db.prepare(
+    'SELECT id, initial_text, final_text FROM goals WHERE participant_id = ? ORDER BY id DESC LIMIT 1'
+  ).get(req.params.participantId) as any
+
+  if (!goal) return res.status(404).json({ error: 'No goal found' })
+  res.json({ goal_text: goal.final_text || goal.initial_text })
+})
+
 router.post('/:id/finalize', (req, res) => {
   const { final_text, exit_reason } = req.body
 

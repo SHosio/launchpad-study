@@ -13,8 +13,8 @@ export function GoalWritingStep({ onSubmit }: GoalWritingStepProps) {
   return (
     <Card className="mx-auto max-w-xl p-6 space-y-4">
       <div className="text-center">
-        <h2 className="font-display text-xl font-bold text-zinc-100">Write Your Goal</h2>
-        <p className="text-sm text-zinc-400 mt-1">
+        <h2 className="font-display text-xl font-bold text-zinc-900">Write Your Goal</h2>
+        <p className="text-sm text-zinc-600 mt-1">
           Think of a specific academic or professional goal you want to achieve in the next 4-5 weeks.
         </p>
       </div>
@@ -28,11 +28,11 @@ export function GoalWritingStep({ onSubmit }: GoalWritingStepProps) {
       />
 
       <p className="text-xs text-zinc-500">
-        A strong goal is <strong className="text-zinc-400">Specific</strong> (what exactly?),{' '}
-        <strong className="text-zinc-400">Measurable</strong> (how will you know?),{' '}
-        <strong className="text-zinc-400">Achievable</strong> (realistic stretch?),{' '}
-        <strong className="text-zinc-400">Relevant</strong> (why does it matter?),{' '}
-        and <strong className="text-zinc-400">Time-bound</strong> (by when?).
+        A strong goal is <strong className="text-zinc-700">Specific</strong> (what exactly?),{' '}
+        <strong className="text-zinc-700">Measurable</strong> (how will you know?),{' '}
+        <strong className="text-zinc-700">Achievable</strong> (realistic stretch?),{' '}
+        <strong className="text-zinc-700">Relevant</strong> (why does it matter?),{' '}
+        and <strong className="text-zinc-700">Time-bound</strong> (by when?).
       </p>
 
       <Button onClick={() => onSubmit(goalText.trim())} disabled={goalText.trim().length < 10} className="w-full">

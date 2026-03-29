@@ -9,10 +9,10 @@ export default function CompletePage() {
   const prolificRedirect = `https://app.prolific.com/submissions/complete?cc=STUDY_COMPLETION_CODE`
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-zinc-100 px-4">
+    <div className="flex items-center justify-center min-h-screen bg-white text-zinc-900 px-4">
       <Card className="max-w-md w-full p-8 text-center space-y-4">
         <h1 className="font-display text-2xl font-bold">Thank You!</h1>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-zinc-600">
           Your responses have been recorded. You may be invited to a brief follow-up survey in one week.
         </p>
         <a
@@ -21,7 +21,7 @@ export default function CompletePage() {
         >
           Return to Prolific
         </a>
-        <p className="text-xs text-zinc-600">Participant: {prolificPid}</p>
+        <p className="text-xs text-zinc-400">Participant: {prolificPid}</p>
       </Card>
     </div>
   )

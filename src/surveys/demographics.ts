@@ -8,16 +8,33 @@ export const demographicsSurvey = {
           type: "html",
           name: "consent_text",
           html: `
-            <div style="max-width: 700px; line-height: 1.6;">
-              <h2>Informed Consent</h2>
+            <div style="max-width: 700px; line-height: 1.7;">
+              <h2 style="margin-bottom: 0.5em;">Informed Consent</h2>
+
               <p><strong>Study:</strong> AI-Coached Goal Formulation for Early-Career Academics</p>
-              <p><strong>Institution:</strong> University of Oulu</p>
+              <p><strong>Principal Investigator &amp; Data Controller:</strong> Professor Simo Hosio, University of Oulu, Faculty of Information Technology and Electrical Engineering</p>
+              <p><strong>Contact:</strong> simo.hosio@oulu.fi</p>
+
+              <h3 style="margin-top: 1.2em;">Purpose</h3>
               <p>You are invited to participate in a research study examining how different approaches to goal formulation affect goal quality, commitment, and self-efficacy among early-career academics.</p>
-              <p><strong>What the study involves:</strong> This session will take approximately 15–25 minutes. You will be asked to formulate a professional goal and respond to several questionnaires about your goal-setting experience.</p>
-              <p><strong>Follow-up:</strong> You may be contacted for a brief follow-up survey approximately one week after this session to assess your progress toward the goal you set today.</p>
-              <p><strong>Data handling:</strong> All responses are stored securely and will be used solely for research purposes. Your data will be anonymised before any analysis or reporting. No personally identifying information will be shared.</p>
-              <p><strong>Voluntary participation:</strong> Your participation is entirely voluntary. You may withdraw at any time without consequence.</p>
-              <p><strong>Questions:</strong> If you have any questions about this study, please contact the research team at the University of Oulu.</p>
+
+              <h3 style="margin-top: 1.2em;">What the study involves</h3>
+              <p>This session takes approximately 15–25 minutes. You will formulate a professional goal and respond to questionnaires about your goal-setting experience. Some participants will interact with an AI coaching tool as part of the process. You may also be invited to a brief follow-up survey approximately one week later (~3 minutes).</p>
+
+              <h3 style="margin-top: 1.2em;">Data collected</h3>
+              <p>We collect your survey responses, goal text, and interaction data (e.g., timestamps, number of revisions). Your Prolific ID is stored to link your session with the optional follow-up; it will be replaced with an anonymous identifier before analysis.</p>
+
+              <h3 style="margin-top: 1.2em;">Legal basis &amp; data handling (GDPR Art. 6(1)(a))</h3>
+              <p>Processing is based on your freely given consent. Data is stored on encrypted servers within the EU/EEA. Only the research team has access to identifiable data. Your Prolific ID will be pseudonymised after the follow-up window closes and permanently deleted upon study completion. Anonymised data may be shared in academic publications and open datasets.</p>
+
+              <h3 style="margin-top: 1.2em;">Your rights</h3>
+              <p>Under the EU General Data Protection Regulation (GDPR), you have the right to access, rectify, or request deletion of your personal data at any time by contacting the principal investigator. Withdrawal does not affect the lawfulness of processing carried out before withdrawal.</p>
+
+              <h3 style="margin-top: 1.2em;">Voluntary participation</h3>
+              <p>Your participation is entirely voluntary. You may withdraw at any time by closing this browser window, without any consequence to you. If you withdraw, your data will be deleted unless it has already been anonymised.</p>
+
+              <h3 style="margin-top: 1.2em;">Questions or concerns</h3>
+              <p>Contact Professor Simo Hosio at <strong>simo.hosio@oulu.fi</strong>. For data protection concerns, you may also contact the University of Oulu Data Protection Officer at <strong>dpo@oulu.fi</strong>.</p>
             </div>
           `,
         },
@@ -25,7 +42,7 @@ export const demographicsSurvey = {
           type: "checkbox",
           name: "consent_given",
           isRequired: true,
-          title: " ",
+          titleLocation: "hidden",
           choices: [
             {
               value: "yes",
@@ -102,14 +119,6 @@ export const demographicsSurvey = {
           name: "institution",
           title: "What institution are you currently affiliated with?",
           isRequired: true,
-        },
-        {
-          type: "comment",
-          name: "current_goal",
-          title:
-            "Briefly describe a professional goal you are currently working on or would like to work on.",
-          isRequired: true,
-          rows: 2,
         },
         {
           type: "radiogroup",

@@ -50,6 +50,10 @@ export const api = {
     return post('/ai/goal-coach', { goal_id: goalId, goal_text: goalText, previous_feedback: previousFeedback })
   },
 
+  getParticipantGoal(participantId: number): Promise<{ goal_text: string }> {
+    return fetch(`${BASE}/goals/by-participant/${participantId}`).then(r => r.json())
+  },
+
   saveAnchoring(participantId: number, pleasureVision: string, painVision: string): Promise<void> {
     return post('/anchoring', { participant_id: participantId, pleasure_vision: pleasureVision, pain_vision: painVision })
   },

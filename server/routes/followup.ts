@@ -4,17 +4,16 @@ import db from '../db.js'
 const router = Router()
 
 router.post('/', (req, res) => {
-  const { participant_id, responses } = req.body
+  const { participant_id, ...responses } = req.body
 
   db.prepare(
-    'INSERT INTO followup_responses (participant_id, goal_recall, goal_attainment, attainment_percentage, behavioral_specificity, structured_use, responses_json) VALUES (?, ?, ?, ?, ?, ?, ?)'
+    'INSERT INTO followup_responses (participant_id, recall_confidence, recall_recognition, goal_attainment, attainment_percentage, responses_json) VALUES (?, ?, ?, ?, ?, ?)'
   ).run(
     participant_id,
-    responses.goal_recall || null,
+    responses.recall_confidence || null,
+    responses.recall_recognition || null,
     responses.goal_achieved || null,
     responses.attainment_pct || null,
-    responses.behavioral_specificity || null,
-    responses.used_structured_approach || null,
     JSON.stringify(responses),
   )
 

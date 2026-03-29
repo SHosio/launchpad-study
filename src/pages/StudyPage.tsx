@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import type { Participant, ConditionA, ConditionB, ExitReason } from '@/lib/types'
 import { SurveyPage } from '@/components/SurveyPage'
+import { GoalReadinessGate } from '@/components/GoalReadinessGate'
 import { GoalWritingStep } from '@/components/GoalWritingStep'
 import { AiRefinementLoop } from '@/components/AiRefinementLoop'
 import { PrimingStep } from '@/components/PrimingStep'
@@ -17,6 +18,7 @@ type StudyStep =
   | 'loading'
   | 'demographics'
   | 'pre_measure'
+  | 'goal_readiness'
   | 'priming'
   | 'priming_compliance'
   | 'goal_writing'
@@ -41,6 +43,7 @@ function getStepIndex(step: StudyStep, a: ConditionA, b: ConditionB): number {
     loading: 'Info',
     demographics: 'Info',
     pre_measure: 'Pre-Survey',
+    goal_readiness: 'Pre-Survey',
     priming: 'Priming',
     priming_compliance: 'Priming',
     goal_writing: 'Goal',
@@ -93,6 +96,10 @@ export default function StudyPage() {
 
   async function handleDemographics(data: Record<string, unknown>) {
     if (participant) await api.saveDemographics(participant.id, data)
+    setStep('goal_readiness')
+  }
+
+  function handleGoalReady() {
     updateStatus('pre_measure')
     setStep('pre_measure')
   }
@@ -166,18 +173,19 @@ export default function StudyPage() {
   }
 
   if (step === 'loading') {
-    return <div className="flex items-center justify-center min-h-screen text-zinc-400">Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen text-zinc-500">Loading...</div>
   }
 
   const stepLabels = getStepLabels(condA, condB)
   const currentIdx = getStepIndex(step, condA, condB)
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 py-8 px-4">
+    <div className="min-h-screen bg-white text-zinc-900 py-8 px-4">
       <ProgressBar steps={stepLabels} currentStep={currentIdx} />
 
       {step === 'demographics' && <SurveyPage surveyJson={demographicsSurvey} onComplete={handleDemographics} />}
       {step === 'pre_measure' && <SurveyPage surveyJson={preMeasureSurvey} onComplete={handlePreMeasure} />}
+      {step === 'goal_readiness' && <GoalReadinessGate onReady={handleGoalReady} />}
       {step === 'priming' && <PrimingStep onComplete={handlePrimingDone} />}
       {step === 'priming_compliance' && <SurveyPage surveyJson={primingComplianceSurvey} onComplete={handlePrimingCompliance} />}
       {step === 'goal_writing' && <GoalWritingStep onSubmit={handleGoalSubmit} />}

@@ -16,14 +16,14 @@ export function ExitReasonModal({ onSelect }: ExitReasonModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <Card className="max-w-sm w-full p-6 space-y-4">
-        <h3 className="font-display text-lg font-bold text-zinc-100">Before you continue</h3>
-        <p className="text-sm text-zinc-400">Why did you stop revising?</p>
+        <h3 className="font-display text-lg font-bold text-zinc-900">Before you continue</h3>
+        <p className="text-sm text-zinc-600">Why did you stop revising?</p>
         <div className="space-y-2">
           {OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => onSelect(opt.value)}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-800/50 px-4 py-3 text-left text-sm text-zinc-200 hover:border-orange-500/50 hover:bg-zinc-800 transition-colors"
+              className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-left text-sm text-zinc-700 hover:border-orange-500/50 hover:bg-orange-50 transition-colors"
             >
               {opt.label}
             </button>

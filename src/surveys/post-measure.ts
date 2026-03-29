@@ -6,41 +6,6 @@ const likertChoices = [
   { value: 5, text: "Strongly Agree" },
 ];
 
-const ngsePostItems = [
-  {
-    name: "ngse_post_1",
-    text: "I will be able to achieve most of the goals that I have set for myself.",
-  },
-  {
-    name: "ngse_post_2",
-    text: "When facing difficult tasks, I am certain that I will accomplish them.",
-  },
-  {
-    name: "ngse_post_3",
-    text: "In general, I think that I can obtain outcomes that are important to me.",
-  },
-  {
-    name: "ngse_post_4",
-    text: "I believe I can succeed at most any endeavor to which I set my mind.",
-  },
-  {
-    name: "ngse_post_5",
-    text: "I will be able to successfully overcome many challenges.",
-  },
-  {
-    name: "ngse_post_6",
-    text: "I am confident that I can perform effectively on many different tasks.",
-  },
-  {
-    name: "ngse_post_7",
-    text: "Compared to other people, I can do most tasks very well.",
-  },
-  {
-    name: "ngse_post_8",
-    text: "Even when things are tough, I can perform quite well.",
-  },
-];
-
 const kgcPostItems = [
   {
     name: "kgc_post_1",
@@ -64,21 +29,31 @@ const kgcPostItems = [
   },
 ];
 
+const selfEfficacyChoices = [
+  { value: 1, text: "1 — Not at all confident" },
+  { value: 2, text: "2" },
+  { value: 3, text: "3" },
+  { value: 4, text: "4 — Somewhat confident" },
+  { value: 5, text: "5" },
+  { value: 6, text: "6" },
+  { value: 7, text: "7 — Extremely confident" },
+];
+
 export function buildPostMeasureSurvey(isA2: boolean) {
   const pages: object[] = [
     {
-      name: "ngse_post",
-      title: "General Self-Efficacy",
-      description:
-        "Please indicate how much you agree or disagree with each of the following statements.",
-      elements: ngsePostItems.map((item) => ({
-        type: "radiogroup",
-        name: item.name,
-        title: item.text,
-        isRequired: true,
-        choices: likertChoices,
-        colCount: 5,
-      })),
+      name: "self_efficacy_post",
+      title: "Goal Self-Efficacy",
+      elements: [
+        {
+          type: "radiogroup",
+          name: "post_goal_self_efficacy",
+          title: "How confident are you that you can achieve this goal?",
+          isRequired: true,
+          choices: selfEfficacyChoices,
+          colCount: 7,
+        },
+      ],
     },
     {
       name: "kgc_post",
@@ -233,8 +208,8 @@ export function buildPostMeasureSurvey(isA2: boolean) {
         type: "comment",
         name: "process_comparison",
         title:
-          "How did this goal-setting process compare to how you normally set goals?",
-        isRequired: true,
+          "Any thoughts on the goal-setting process you just completed?",
+        isRequired: false,
       },
     ],
   });

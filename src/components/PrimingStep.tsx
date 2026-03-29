@@ -22,17 +22,17 @@ export function PrimingStep({ onComplete }: PrimingStepProps) {
   return (
     <Card className="mx-auto max-w-xl p-6 space-y-5">
       <div className="text-center">
-        <h2 className="font-display text-xl font-bold text-zinc-100">Get Into the Zone</h2>
-        <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
+        <h2 className="font-display text-xl font-bold text-zinc-900">Get Into the Zone</h2>
+        <p className="text-sm text-zinc-600 mt-2 leading-relaxed">
           Before you set your goal, take a moment to get into an energized, focused state.
           You might listen to a song that fires you up, do 30 seconds of physical movement,
           take a few deep breaths, or simply close your eyes and think about why this goal matters to you.
         </p>
-        <p className="text-sm text-zinc-400 mt-2">Take at least 90 seconds.</p>
+        <p className="text-sm text-zinc-600 mt-2">Take at least 90 seconds.</p>
       </div>
 
       <div className="text-center">
-        <div className={`inline-flex items-center justify-center rounded-full h-20 w-20 text-2xl font-mono font-bold ${timerDone ? 'bg-green-500/20 text-green-400' : 'bg-zinc-800 text-zinc-300'}`}>
+        <div className={`inline-flex items-center justify-center rounded-full h-20 w-20 text-2xl font-mono font-bold ${timerDone ? 'bg-green-50 text-green-600 ring-1 ring-green-200' : 'bg-zinc-100 text-zinc-700'}`}>
           {timerDone ? '\u2713' : `${mins}:${secs.toString().padStart(2, '0')}`}
         </div>
       </div>
