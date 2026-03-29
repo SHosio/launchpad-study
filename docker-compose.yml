@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  study:
+    build: .
+    ports:
+      - "3001:3001"
+    volumes:
+      - study-data:/app/data
+    env_file:
+      - .env
+
+volumes:
+  study-data:
