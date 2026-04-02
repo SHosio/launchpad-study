@@ -71,7 +71,7 @@ router.post('/goal-coach', async (req, res) => {
     const weakest = (['specific', 'measurable', 'achievable', 'relevant', 'timeBound'] as const)
       .filter(d => dims[d]?.rating === 'weak')
       .concat((['specific', 'measurable', 'achievable', 'relevant', 'timeBound'] as const)
-        .filter(d => dims[d]?.rating === 'okay'))
+        .filter(d => dims[d]?.rating === 'adequate'))
     const flaggedDimension = weakest[0] || null
 
     // Get current round number

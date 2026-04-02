@@ -16,6 +16,7 @@ export function SurveyPage({ surveyJson, onComplete, title, onCurrentPageChanged
   }, [onComplete])
 
   const survey = new Model(surveyJson)
+  survey.showCompletedPage = false
 
   // Light theme overrides
   survey.applyTheme({

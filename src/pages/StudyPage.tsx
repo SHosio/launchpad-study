@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { api } from '@/lib/api'
 import type { Participant, ConditionA, ConditionB, ExitReason } from '@/lib/types'
+import { decodeVariant } from '@/lib/conditions'
 import { SurveyPage } from '@/components/SurveyPage'
 import { GoalReadinessGate } from '@/components/GoalReadinessGate'
 import { GoalWritingStep } from '@/components/GoalWritingStep'
@@ -65,8 +66,10 @@ export default function StudyPage() {
   const [goalText, setGoalText] = useState('')
   const [sessionStartAt] = useState(new Date().toISOString())
 
-  const condA = (searchParams.get('condition_a') || searchParams.get('condA') || 'A1') as ConditionA
-  const condB = (searchParams.get('condition_b') || searchParams.get('condB') || 'B1') as ConditionB
+  // Decode opaque variant code (e.g., ?v=xR7qL) or fall back to explicit params for backwards compat
+  const variant = decodeVariant(searchParams.get('v'))
+  const condA = (variant?.a || searchParams.get('condition_a') || 'A1') as ConditionA
+  const condB = (variant?.b || searchParams.get('condition_b') || 'B1') as ConditionB
   const prolificPid = searchParams.get('PROLIFIC_PID') || searchParams.get('prolific_pid') || `test_${Date.now()}`
   const studyId = searchParams.get('STUDY_ID') || ''
   const sessionId = searchParams.get('SESSION_ID') || ''

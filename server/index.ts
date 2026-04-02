@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import path from 'path'
@@ -22,6 +23,7 @@ import anchoringRouter from './routes/anchoring.js'
 import aiRouter from './routes/ai.js'
 import followupRouter from './routes/followup.js'
 import adminRouter from './routes/admin.js'
+import dashboardRouter from './routes/dashboard.js'
 
 app.use('/api/participants', participantsRouter)
 app.use('/api/surveys', surveysRouter)
@@ -30,6 +32,7 @@ app.use('/api/anchoring', anchoringRouter)
 app.use('/api/ai', aiRouter)
 app.use('/api/followup', followupRouter)
 app.use('/api/admin', adminRouter)
+app.use('/api/admin', dashboardRouter)
 
 // Health check
 app.get('/api/health', (_req, res) => {

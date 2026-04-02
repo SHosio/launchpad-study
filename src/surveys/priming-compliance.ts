@@ -16,7 +16,7 @@ export const primingComplianceSurvey = {
         {
           type: "radiogroup",
           name: "priming_energization",
-          title: "How energized and focused do you feel right now?",
+          title: "How energized do you feel right now?",
           isRequired: true,
           choices: [
             { value: 1, text: "1 — Not at all" },

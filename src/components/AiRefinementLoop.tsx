@@ -26,13 +26,15 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
   const [previousFeedback, setPreviousFeedback] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [roundNumber, setRoundNumber] = useState(0) // 0 = initial evaluation, 1+ = revisions
 
   useEffect(() => {
-    evaluate(initialGoalText, null)
+    evaluate(initialGoalText, null, false)
   }, [])
 
-  async function evaluate(text: string, prevFeedback: string | null) {
+  async function evaluate(text: string, prevFeedback: string | null, isRevision = true) {
     setLoading(true)
+    if (isRevision) setRoundNumber((r) => r + 1)
     try {
       const res = await api.getGoalCoachFeedback(goalId, text, prevFeedback)
       setResult(res)
@@ -45,7 +47,7 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
   }
 
   function handleRefine() {
-    evaluate(goalText, previousFeedback)
+    evaluate(goalText, previousFeedback, true)
   }
 
   function handleSkip() {
@@ -82,10 +84,10 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
                 const rating = result.dimensions[dim].rating
                 const color =
                   rating === 'strong'
-                    ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                    : rating === 'okay'
-                      ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                      : 'bg-red-500/20 text-red-400 border-red-500/30'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : rating === 'adequate'
+                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
                 return (
                   <div key={dim} className={`rounded-lg border p-2 text-center ${color}`} title={result.dimensions[dim].note}>
                     <p className="text-[10px] font-medium uppercase tracking-wider">{DIMENSION_LABELS[dim]}</p>
@@ -105,14 +107,21 @@ export function AiRefinementLoop({ goalId, initialGoalText, onFinish }: AiRefine
             <Textarea value={goalText} onChange={(e) => setGoalText(e.target.value)} rows={5} />
 
             <Button onClick={handleRefine} disabled={loading} className="w-full">
-              {loading ? 'Checking...' : 'Check Again'}
+              {loading ? 'Checking...' : roundNumber === 0 ? 'Revise & Check Again' : 'Check Again'}
             </Button>
-            <button
-              onClick={handleSkip}
-              className="w-full text-center text-xs text-zinc-500 hover:text-zinc-700 transition-colors py-2"
-            >
-              {result.overall === 'strong' ? 'Continue \u2192' : 'This is good enough'}
-            </button>
+            {roundNumber === 0 && result.overall !== 'strong' && (
+              <p className="text-center text-xs text-zinc-400 py-1">
+                Please revise your goal based on the feedback above, then check again.
+              </p>
+            )}
+            {(roundNumber >= 1 || result.overall === 'strong') && (
+              <button
+                onClick={handleSkip}
+                className="w-full text-center text-xs text-zinc-500 hover:text-zinc-700 transition-colors py-2"
+              >
+                {result.overall === 'strong' ? 'Continue \u2192' : 'This is good enough'}
+              </button>
+            )}
           </>
         )}
       </Card>

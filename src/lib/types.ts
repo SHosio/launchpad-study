@@ -18,13 +18,13 @@ export interface Participant {
 }
 
 export interface GoalCoachResult {
-  overall: 'strong' | 'okay' | 'weak'
+  overall: 'strong' | 'adequate' | 'weak'
   dimensions: {
-    specific: { rating: 'strong' | 'okay' | 'weak'; note: string }
-    measurable: { rating: 'strong' | 'okay' | 'weak'; note: string }
-    achievable: { rating: 'strong' | 'okay' | 'weak'; note: string }
-    relevant: { rating: 'strong' | 'okay' | 'weak'; note: string }
-    timeBound: { rating: 'strong' | 'okay' | 'weak'; note: string }
+    specific: { rating: 'strong' | 'adequate' | 'weak'; note: string }
+    measurable: { rating: 'strong' | 'adequate' | 'weak'; note: string }
+    achievable: { rating: 'strong' | 'adequate' | 'weak'; note: string }
+    relevant: { rating: 'strong' | 'adequate' | 'weak'; note: string }
+    timeBound: { rating: 'strong' | 'adequate' | 'weak'; note: string }
   }
   feedback: string
   suggestion: string

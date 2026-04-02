@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Self-reminder: Update this file after any key changes to flow, measures, routes, or architecture.**
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project
@@ -16,7 +18,7 @@ Full design doc: `/Users/simohosio/Documents/Academic/Papers/Launchpad/docs/stud
 - **Factor B:** B1 (No Anchoring) vs B2 (Energy priming + pleasure/pain visioning)
 - **N = 200** (50 per cell), recruited via Prolific
 - **Session:** ~15-25 min single session + separate 1-week follow-up study
-- **Measures:** NGSE (self-efficacy), KGC (goal commitment), goal clarity, activation, objective goal quality (human-rated), refinement process data (A2 only), coach perception (A2 only)
+- **Measures:** Goal self-efficacy (single item, 1-7, three time points), KGC (goal commitment, 5 items, three time points), goal clarity, activation, objective goal quality (human-rated), goal recall (two-step numeric), refinement process data (A2 only), coach perception (A2 only)
 
 ## Tech Stack
 
@@ -45,9 +47,11 @@ No test runner or linter is configured.
 `StudyPage` is a state machine that orchestrates the entire participant session. The step sequence adapts based on condition assignment:
 
 ```
-demographics -> pre_measure -> [priming -> priming_compliance]? -> goal_writing -> [coaching]? -> [anchoring]? -> post_measure -> /complete
-                                       ^^ B2 only                                  ^^ A2 only     ^^ B2 only
+demographics -> goal_readiness_gate -> pre_measure -> [priming -> priming_compliance]? -> goal_writing -> [coaching]? -> [anchoring]? -> post_measure -> /complete
+                                                              ^^ B2 only                                  ^^ A2 only     ^^ B2 only
 ```
+
+Pre-measure (self-efficacy + KGC + energy) comes after the goal readiness gate so participants have a goal in mind when answering commitment questions.
 
 Conditions are passed via URL params (`condition_a`, `condition_b`). Each step transition calls `api.updateStatus()` to track progress server-side.
 
@@ -74,6 +78,8 @@ Build command compiles both: `vite build && tsc -p tsconfig.server.json`.
 - `/api/health` — Health check
 - `/api/admin/export?password=xxx` — Full data export (JSON)
 - `/api/admin/stats?password=xxx` — Completion stats by condition
+- `/api/admin/reset?password=xxx` — DELETE all data (POST, requires confirmation)
+- `/test` — Dev dashboard with condition links, follow-up launcher, admin tools
 
 ### Local Dev Testing URLs
 

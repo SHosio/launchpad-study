@@ -56,6 +56,10 @@ export const preMeasureSurvey = {
           choices: selfEfficacyChoices,
           colCount: 7,
         },
+        {
+          type: "html",
+          html: '<hr style="border-top: 1px solid #e4e4e7; margin: 8px 0;" />',
+        },
         ...kgcItems.map((item) => ({
           type: "radiogroup",
           name: item.value,
@@ -65,19 +69,25 @@ export const preMeasureSurvey = {
           colCount: 5,
         })),
         {
+          type: "html",
+          html: '<hr style="border-top: 1px solid #e4e4e7; margin: 8px 0;" />',
+        },
+        {
           type: "radiogroup",
           name: "baseline_energy",
           title:
-            "Right now, how physically and mentally energized do you feel?",
+            "Right now, how energized do you feel?",
           isRequired: true,
           choices: [
-            { value: 1, text: "1 — Very low" },
+            { value: 1, text: "1 — Not at all energized" },
             { value: 2, text: "2" },
-            { value: 3, text: "3 — Moderate" },
-            { value: 4, text: "4" },
-            { value: 5, text: "5 — Very high" },
+            { value: 3, text: "3" },
+            { value: 4, text: "4 — Somewhat energized" },
+            { value: 5, text: "5" },
+            { value: 6, text: "6" },
+            { value: 7, text: "7 — Extremely energized" },
           ],
-          colCount: 5,
+          colCount: 7,
         },
       ],
     },
