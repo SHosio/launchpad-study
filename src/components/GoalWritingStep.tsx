@@ -15,14 +15,14 @@ export function GoalWritingStep({ onSubmit }: GoalWritingStepProps) {
       <div className="text-center">
         <h2 className="font-display text-xl font-bold text-zinc-900">Write Your Goal</h2>
         <p className="text-sm text-zinc-600 mt-1">
-          Think of a specific academic or professional goal you want to achieve in the next 4-5 weeks.
+          Think of a specific professional or personal development goal you want to achieve in the next 4-5 weeks.
         </p>
       </div>
 
       <Textarea
         value={goalText}
         onChange={(e) => setGoalText(e.target.value)}
-        placeholder={'Example: "I will complete a full draft of my thesis introduction chapter by April 30th. Done means a coherent 3000-word draft shared with my supervisor. This matters because my committee meeting is in May and I need to show writing progress."\n\nNow write yours — what will you achieve, how will you know it\'s done, why does it matter, and by when?'}
+        placeholder={'Examples:\n• "Complete a professional certification course by the end of June"\n• "Finish the first draft of my thesis chapter in the next 3 weeks"\n\nNow write yours — what will you achieve, how will you know it\'s done, why does it matter, and by when?'}
         rows={7}
         autoFocus
       />

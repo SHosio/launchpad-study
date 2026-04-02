@@ -16,13 +16,13 @@ export function GoalReadinessGate({ onReady }: GoalReadinessGateProps) {
           Before You Begin
         </h2>
         <p className="text-zinc-700 leading-relaxed">
-          In the next step, you will be asked to write down a specific academic or professional goal
+          In the next step, you will be asked to write down a specific professional or personal development goal
           you want to achieve in the <strong>next 4–5 weeks</strong>.
         </p>
         <p className="text-zinc-700 leading-relaxed">
           Take a moment to think about what that goal might be. Everyone has something they are working
-          toward — it could be finishing a paper draft, completing a chapter, preparing a grant
-          application, learning a new method, or making progress on a research project. Big or small,
+          toward — it could be completing a certification, finishing a project, learning a new skill,
+          launching something you have been planning, or making progress on a long-term goal. Big or small,
           what matters is that it is real and meaningful to you.
         </p>
         <p className="text-zinc-600 text-sm italic">

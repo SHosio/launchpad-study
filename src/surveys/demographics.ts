@@ -11,12 +11,12 @@ export const demographicsSurvey = {
             <div style="max-width: 700px; line-height: 1.7;">
               <h2 style="margin-bottom: 0.5em;">Informed Consent</h2>
 
-              <p><strong>Study:</strong> AI-Coached Goal Formulation for Early-Career Academics</p>
+              <p><strong>Study:</strong> AI-Coached Goal Formulation</p>
               <p><strong>Principal Investigator &amp; Data Controller:</strong> Professor Simo Hosio, University of Oulu, Faculty of Information Technology and Electrical Engineering</p>
               <p><strong>Contact:</strong> simo.hosio@oulu.fi</p>
 
               <h3 style="margin-top: 1.2em;">Purpose</h3>
-              <p>You are invited to participate in a research study examining how different approaches to goal formulation affect goal quality, commitment, and self-efficacy among early-career academics.</p>
+              <p>You are invited to participate in a research study examining how different approaches to goal formulation affect goal quality, commitment, and self-efficacy.</p>
 
               <h3 style="margin-top: 1.2em;">What the study involves</h3>
               <p>This session takes approximately 15–25 minutes. You will formulate a professional goal and respond to questionnaires about your goal-setting experience. Some participants will interact with an AI coaching tool as part of the process. You may also be invited to a brief follow-up survey approximately one week later (~3 minutes).</p>
@@ -86,38 +86,32 @@ export const demographicsSurvey = {
         },
         {
           type: "radiogroup",
-          name: "career_stage",
-          title: "What is your current career stage?",
+          name: "education_level",
+          title: "What is your highest level of education?",
           isRequired: true,
           choices: [
             {
-              value: "phd_student",
-              text: "Current PhD / doctoral student",
+              value: "masters_enrolled",
+              text: "Master's degree (currently enrolled)",
             },
             {
-              value: "postdoc",
-              text: "Postdoctoral researcher",
+              value: "masters_completed",
+              text: "Master's degree (completed)",
             },
             {
-              value: "junior_faculty",
-              text: "Junior faculty within first 5 years",
+              value: "doctorate_enrolled",
+              text: "Doctorate (currently enrolled)",
             },
             {
-              value: "other_academic",
-              text: "Other academic role",
+              value: "doctorate_completed",
+              text: "Doctorate (completed)",
             },
           ],
         },
         {
           type: "text",
           name: "field_of_study",
-          title: "What is your field of study or discipline?",
-          isRequired: true,
-        },
-        {
-          type: "text",
-          name: "institution",
-          title: "What institution are you currently affiliated with?",
+          title: "What is your field of study or professional domain?",
           isRequired: true,
         },
         {
