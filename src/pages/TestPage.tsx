@@ -178,6 +178,13 @@ export default function TestPage() {
             >
               Export JSON
             </a>
+            <a
+              href={adminPassword ? `/api/admin/download-db?password=${encodeURIComponent(adminPassword)}` : undefined}
+              onClick={(e) => { if (!adminPassword) e.preventDefault() }}
+              className="rounded-lg bg-zinc-800 text-white px-4 py-2 text-sm font-medium hover:bg-zinc-700 transition-colors"
+            >
+              Download DB
+            </a>
             <button
               onClick={handleReset}
               className="rounded-lg bg-red-50 border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"

@@ -1,4 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
+import path from 'path'
 import db from '../db.js'
 
 const router = Router()
@@ -69,6 +70,14 @@ router.post('/reset', requireAdmin, (_req: Request, res: Response) => {
   db.prepare('DELETE FROM participants').run()
 
   res.json({ deleted: counts, reset_at: new Date().toISOString() })
+})
+
+router.get('/download-db', requireAdmin, (_req: Request, res: Response) => {
+  const dbPath = process.env.DATABASE_PATH || './data/study.db'
+  const resolved = path.resolve(dbPath)
+  res.download(resolved, 'study.db', (err) => {
+    if (err) res.status(500).json({ error: 'Failed to download database' })
+  })
 })
 
 export default router
