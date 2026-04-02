@@ -459,6 +459,54 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   }
   html += `</tbody></table>`
 
+  // --- Open-Ended: Coach Experience (A2 only) ---
+  const coachExperiences: { pid: string, text: string }[] = []
+  for (const p of a2Participants) {
+    const post = postSurveys.get(p.id)
+    if (!post) continue
+    const text = String(post.coach_experience || '').trim()
+    if (text) coachExperiences.push({ pid: p.prolific_pid, text })
+  }
+  if (coachExperiences.length > 0) {
+    html += `<h2>Coach Experience — Open-Ended (A2 only)</h2><table><thead><tr><th>PID</th><th>Response</th></tr></thead><tbody>`
+    for (const ce of coachExperiences) {
+      html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(ce.pid.slice(0, 20))}</td><td style="font-size:0.8rem;max-width:700px">${escapeHtml(ce.text)}</td></tr>`
+    }
+    html += `</tbody></table>`
+  }
+
+  // --- Open-Ended: Process Reflections (all conditions) ---
+  const processReflections: { pid: string, cell: string, text: string }[] = []
+  for (const p of participants) {
+    const post = postSurveys.get(p.id)
+    if (!post) continue
+    const text = String(post.process_comparison || '').trim()
+    if (text) processReflections.push({ pid: p.prolific_pid, cell: `${p.condition_a}×${p.condition_b}`, text })
+  }
+  if (processReflections.length > 0) {
+    html += `<h2>Process Reflections — Open-Ended</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Response</th></tr></thead><tbody>`
+    for (const pr of processReflections) {
+      html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(pr.pid.slice(0, 20))}</td><td><span class="pill pill-gray">${pr.cell}</span></td><td style="font-size:0.8rem;max-width:600px">${escapeHtml(pr.text)}</td></tr>`
+    }
+    html += `</tbody></table>`
+  }
+
+  // --- Anchoring Visions (B2 only) ---
+  interface AnchoringRow { participant_id: number, pleasure_vision: string, pain_vision: string }
+  const anchoringData = db.prepare('SELECT * FROM anchoring').all() as AnchoringRow[]
+  if (anchoringData.length > 0) {
+    html += `<h2>Pleasure &amp; Pain Visions (B2 only)</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Pleasure Vision</th><th>Pain Vision</th></tr></thead><tbody>`
+    for (const a of anchoringData) {
+      const p = participants.find(p => p.id === a.participant_id)
+      if (!p) continue
+      html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(p.prolific_pid.slice(0, 20))}</td>`
+      html += `<td><span class="pill pill-gray">${p.condition_a}×${p.condition_b}</span></td>`
+      html += `<td style="font-size:0.78rem;max-width:350px">${escapeHtml(a.pleasure_vision)}</td>`
+      html += `<td style="font-size:0.78rem;max-width:350px">${escapeHtml(a.pain_vision)}</td></tr>`
+    }
+    html += `</tbody></table>`
+  }
+
   // --- Charts ---
   const cellLabels = cells.map(c => cellLabel(c.split('_')[0], c.split('_')[1]))
   const COLORS = { control: '#71717a', ai: '#f97316', anchoring: '#8b5cf6', both: '#0ea5e9' }
