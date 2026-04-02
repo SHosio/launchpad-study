@@ -5,8 +5,7 @@ export default function CompletePage() {
   const [searchParams] = useSearchParams()
   const prolificPid = searchParams.get('PROLIFIC_PID') || ''
 
-  // Replace STUDY_COMPLETION_CODE with your actual Prolific completion code
-  const prolificRedirect = `https://app.prolific.com/submissions/complete?cc=STUDY_COMPLETION_CODE`
+  const prolificRedirect = `https://app.prolific.com/submissions/complete?cc=CGYZ74XJ`
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-white text-zinc-900 px-4">
