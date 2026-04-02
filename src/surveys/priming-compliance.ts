@@ -5,14 +5,8 @@ export const primingComplianceSurvey = {
       name: "priming_compliance",
       title: "Priming Check-In",
       description:
-        "Please answer a couple of quick questions about the preparation exercise you just completed.",
+        "One quick question before you continue.",
       elements: [
-        {
-          type: "comment",
-          name: "priming_activity",
-          title: "What did you do to prepare yourself?",
-          isRequired: true,
-        },
         {
           type: "radiogroup",
           name: "priming_energization",

@@ -153,7 +153,7 @@ export default function TestPage() {
               className="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-orange-500 focus:outline-none"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={handleStats}
               className="rounded-lg bg-zinc-800 text-white px-4 py-2 text-sm font-medium hover:bg-zinc-700 transition-colors"
@@ -161,9 +161,19 @@ export default function TestPage() {
               View Stats
             </button>
             <a
-              href={adminPassword ? `/api/admin/export?password=${encodeURIComponent(adminPassword)}` : '#'}
+              href={adminPassword ? `/api/admin/dash?password=${encodeURIComponent(adminPassword)}` : undefined}
               target="_blank"
               rel="noreferrer"
+              onClick={(e) => { if (!adminPassword) e.preventDefault() }}
+              className="rounded-lg bg-zinc-800 text-white px-4 py-2 text-sm font-medium hover:bg-zinc-700 transition-colors"
+            >
+              Dashboard
+            </a>
+            <a
+              href={adminPassword ? `/api/admin/export?password=${encodeURIComponent(adminPassword)}` : undefined}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => { if (!adminPassword) e.preventDefault() }}
               className="rounded-lg bg-zinc-800 text-white px-4 py-2 text-sm font-medium hover:bg-zinc-700 transition-colors"
             >
               Export JSON
