@@ -3,21 +3,64 @@ import db from '../db.js'
 
 const router = Router()
 
+const CONDITIONS = [
+  { a: 'A1', b: 'B1' },
+  { a: 'A2', b: 'B1' },
+  { a: 'A1', b: 'B2' },
+  { a: 'A2', b: 'B2' },
+]
+
+// Timeout for considering a participant "active" (45 minutes)
+const ACTIVE_TIMEOUT_MINUTES = 45
+
+/**
+ * Balanced random assignment: pick the cell with fewest active participants.
+ * "Active" = completed OR started within the last 45 minutes (still plausible).
+ * Abandoned sessions (started > 45 min ago, not completed) don't hold a slot.
+ */
+function assignCondition(): { a: string; b: string } {
+  const cutoff = new Date(Date.now() - ACTIVE_TIMEOUT_MINUTES * 60000).toISOString().replace('T', ' ').slice(0, 19)
+
+  const counts = CONDITIONS.map(c => {
+    const row = db.prepare(
+      `SELECT COUNT(*) as n FROM participants
+       WHERE condition_a = ? AND condition_b = ?
+       AND (status = 'completed' OR session_start_at > ?)`
+    ).get(c.a, c.b, cutoff) as any
+    return { ...c, n: row.n as number }
+  })
+
+  // Find the minimum count, then randomly pick among cells tied at that minimum
+  const minCount = Math.min(...counts.map(c => c.n))
+  const candidates = counts.filter(c => c.n === minCount)
+  return candidates[Math.floor(Math.random() * candidates.length)]
+}
+
 router.post('/', (req, res) => {
   const { prolific_pid, study_id, session_id, condition_a, condition_b } = req.body
 
-  if (!prolific_pid || !condition_a || !condition_b) {
-    return res.status(400).json({ error: 'Missing required fields' })
+  if (!prolific_pid) {
+    return res.status(400).json({ error: 'Missing prolific_pid' })
   }
 
+  // Return existing participant if they already started
   const existing = db.prepare('SELECT * FROM participants WHERE prolific_pid = ?').get(prolific_pid) as any
   if (existing) {
     return res.json(existing)
   }
 
+  // Use provided conditions (from v param) or auto-assign
+  let condA = condition_a
+  let condB = condition_b
+  if (!condA || !condB) {
+    const assigned = assignCondition()
+    condA = assigned.a
+    condB = assigned.b
+  }
+
   const result = db.prepare(
     'INSERT INTO participants (prolific_pid, study_id, session_id, condition_a, condition_b) VALUES (?, ?, ?, ?, ?)'
-  ).run(prolific_pid, study_id || null, session_id || null, condition_a, condition_b)
+  ).run(prolific_pid, study_id || null, session_id || null, condA, condB)
 
   const participant = db.prepare('SELECT * FROM participants WHERE id = ?').get(result.lastInsertRowid)
   res.json(participant)

@@ -66,24 +66,25 @@ export default function StudyPage() {
   const [goalText, setGoalText] = useState('')
   const [sessionStartAt] = useState(new Date().toISOString())
 
-  // Decode opaque variant code (e.g., ?v=xR7qL) or fall back to explicit params for backwards compat
+  // Decode opaque variant code (e.g., ?v=xR7qL) or fall back to explicit params
   const variant = decodeVariant(searchParams.get('v'))
-  const condA = (variant?.a || searchParams.get('condition_a') || 'A1') as ConditionA
-  const condB = (variant?.b || searchParams.get('condition_b') || 'B1') as ConditionB
+  const condAParam = variant?.a || searchParams.get('condition_a') || undefined
+  const condBParam = variant?.b || searchParams.get('condition_b') || undefined
   const prolificPid = searchParams.get('PROLIFIC_PID') || searchParams.get('prolific_pid') || `test_${Date.now()}`
   const studyId = searchParams.get('STUDY_ID') || ''
   const sessionId = searchParams.get('SESSION_ID') || ''
 
-  const hasAI = condA === 'A2'
-  const hasAnchoring = condB === 'B2'
+  // Conditions are resolved after participant creation (server may auto-assign)
+  const hasAI = participant?.condition_a === 'A2'
+  const hasAnchoring = participant?.condition_b === 'B2'
 
   useEffect(() => {
     api.createParticipant({
       prolific_pid: prolificPid,
       study_id: studyId,
       session_id: sessionId,
-      condition_a: condA,
-      condition_b: condB,
+      condition_a: condAParam || '',
+      condition_b: condBParam || '',
     }).then((p) => {
       setParticipant(p)
       setStep('demographics')
@@ -179,6 +180,8 @@ export default function StudyPage() {
     return <div className="flex items-center justify-center min-h-screen text-zinc-500">Loading...</div>
   }
 
+  const condA = (participant?.condition_a || 'A1') as ConditionA
+  const condB = (participant?.condition_b || 'B1') as ConditionB
   const stepLabels = getStepLabels(condA, condB)
   const currentIdx = getStepIndex(step, condA, condB)
 

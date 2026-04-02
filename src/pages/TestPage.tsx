@@ -57,11 +57,13 @@ export default function TestPage() {
         <div className="rounded-xl border border-zinc-200 p-6 space-y-3">
           <h2 className="text-lg font-semibold text-zinc-900">Prolific Setup</h2>
           <p className="text-xs text-zinc-600">
-            This study uses <strong>4 separate Prolific studies</strong> (one per cell). Each study URL uses an opaque variant code.
-            Prolific auto-appends <code className="text-orange-600 bg-orange-50 px-1 rounded">PROLIFIC_PID</code>, <code className="text-orange-600 bg-orange-50 px-1 rounded">STUDY_ID</code>, and <code className="text-orange-600 bg-orange-50 px-1 rounded">SESSION_ID</code> as URL params.
+            This study uses <strong>one Prolific study</strong> with server-side balanced randomization.
+            The server assigns each participant to the cell with fewest active participants. Prolific auto-appends <code className="text-orange-600 bg-orange-50 px-1 rounded">PROLIFIC_PID</code>, <code className="text-orange-600 bg-orange-50 px-1 rounded">STUDY_ID</code>, and <code className="text-orange-600 bg-orange-50 px-1 rounded">SESSION_ID</code>.
           </p>
           <div className="rounded-lg bg-zinc-50 border border-zinc-200 p-3 space-y-2 text-xs font-mono text-zinc-700">
-            <p className="text-zinc-400"># Prolific study URLs (one per cell):</p>
+            <p className="text-zinc-400"># Prolific study URL (single study, auto-randomized):</p>
+            <p className="text-zinc-800">{'https://<your-domain>/study'}</p>
+            <p className="text-zinc-400 mt-2"># Manual override URLs (for testing specific conditions):</p>
             {CONDITIONS.map((c) => (
               <p key={`${c.a}-${c.b}`}>
                 <span className="text-zinc-400">{c.label}:</span>{' '}
@@ -70,16 +72,16 @@ export default function TestPage() {
             ))}
           </div>
           <div className="text-xs text-zinc-600 space-y-1">
-            <p><strong>In each Prolific study config:</strong></p>
+            <p><strong>Prolific study config:</strong></p>
             <ol className="list-decimal list-inside space-y-0.5 text-zinc-500">
-              <li>Set the study URL to the matching line above</li>
+              <li>Set the study URL to <code className="text-zinc-800 bg-zinc-100 px-1 rounded">{'https://<your-domain>/study'}</code> — no condition params needed</li>
               <li>Under "Data collection" enable URL parameters: Prolific adds <code className="text-orange-600 bg-orange-50 px-1 rounded">{'{{%PROLIFIC_PID%}}'}</code>, <code className="text-orange-600 bg-orange-50 px-1 rounded">{'{{%STUDY_ID%}}'}</code>, <code className="text-orange-600 bg-orange-50 px-1 rounded">{'{{%SESSION_ID%}}'}</code> automatically</li>
               <li>Set the completion code in <code className="text-orange-600 bg-orange-50 px-1 rounded">CompletePage.tsx</code> (replace <code>STUDY_COMPLETION_CODE</code>)</li>
               <li>The follow-up is a <strong>separate Prolific study</strong> — use URL: <code className="text-zinc-800 bg-zinc-100 px-1 rounded">{'https://<your-domain>/followup'}</code> (participants matched by PROLIFIC_PID)</li>
             </ol>
           </div>
           <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800">
-            <strong>Variant codes:</strong> URLs use an opaque <code>v</code> parameter instead of <code>condition_a</code>/<code>condition_b</code> so participants can't infer their condition assignment.
+            <strong>Randomization:</strong> Server auto-assigns to the least-populated active cell. Abandoned sessions (&gt;45 min, not completed) free up their slot. Use <code>v</code> param to override for testing.
             {ALL_VARIANTS.map((v) => (
               <span key={v.code} className="ml-2 font-mono">{v.code}={v.a}×{v.b}</span>
             ))}
