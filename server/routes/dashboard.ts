@@ -304,7 +304,13 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   .bar-weak { background: #ef4444; }
   .warn { color: #dc2626; font-weight: 600; }
   pre { font-size: 0.75rem; background: #f9fafb; padding: 0.5rem; border-radius: 0.25rem; overflow-x: auto; }
-</style></head><body>
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1rem 0; }
+  .chart-box { background: #f9fafb; border: 1px solid #e4e4e7; border-radius: 0.5rem; padding: 1rem; }
+  .chart-box h3 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #3f3f46; }
+  canvas { max-height: 280px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head><body>
 <h1>Study Dashboard</h1>
 <p class="subtitle">Beneficial Friction Study 1 — ${participants.length} participants, ${participants.filter(p => p.status === 'completed').length} completed — ${new Date().toISOString().slice(0, 16)}</p>`
 
@@ -430,7 +436,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
 
     // Coach perception
     if (coachPerception.useful.length > 0) {
-      html += `<h2>Coach Perception (A2, 1-5 Likert)</h2><table><thead><tr><th>Item</th><th>Mean ± SD</th><th>n</th></tr></thead><tbody>`
+      html += `<h2>Coach Perception (A2, 1-7)</h2><table><thead><tr><th>Item</th><th>Mean ± SD</th><th>n</th></tr></thead><tbody>`
       html += `<tr><td class="label">AI feedback helped improve my goal</td><td class="num">${fmt(mean(coachPerception.useful))} ±${fmt(sd(coachPerception.useful))}</td><td class="num">${coachPerception.useful.length}</td></tr>`
       html += `<tr><td class="label">AI feedback was too demanding (R)</td><td class="num">${fmt(mean(coachPerception.demanding))} ±${fmt(sd(coachPerception.demanding))}</td><td class="num">${coachPerception.demanding.length}</td></tr>`
       html += `<tr><td class="label">Would use this tool again</td><td class="num">${fmt(mean(coachPerception.reuse))} ±${fmt(sd(coachPerception.reuse))}</td><td class="num">${coachPerception.reuse.length}</td></tr>`
@@ -452,6 +458,188 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     html += `<td class="num">${g.rounds}</td></tr>`
   }
   html += `</tbody></table>`
+
+  // --- Charts ---
+  const cellLabels = cells.map(c => cellLabel(c.split('_')[0], c.split('_')[1]))
+  const COLORS = { control: '#71717a', ai: '#f97316', anchoring: '#8b5cf6', both: '#0ea5e9' }
+  const cellColors = ['#71717a', '#f97316', '#8b5cf6', '#0ea5e9']
+
+  html += `<h2>Charts</h2>`
+
+  // Row 1: Recruitment + Self-Efficacy Pre/Post
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>Recruitment Progress</h3><canvas id="chartRecruit"></canvas></div>`
+  html += `<div class="chart-box"><h3>Self-Efficacy Pre vs Post</h3><canvas id="chartSE"></canvas></div>`
+  html += `</div>`
+
+  // Row 2: KGC Pre/Post + Post Single Items
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>Goal Commitment (KGC) Pre vs Post</h3><canvas id="chartKGC"></canvas></div>`
+  html += `<div class="chart-box"><h3>Post-Session Measures</h3><canvas id="chartPost"></canvas></div>`
+  html += `</div>`
+
+  // Row 3: Process Experience + Refinement Rounds
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>Process Experience</h3><canvas id="chartProcess"></canvas></div>`
+  html += `<div class="chart-box"><h3>Refinement Round Distribution (A2)</h3><canvas id="chartRounds"></canvas></div>`
+  html += `</div>`
+
+  // Row 4: Quality Trajectory + Dimension Compliance
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>Quality Trajectory by Round (% Strong)</h3><canvas id="chartTrajectory"></canvas></div>`
+  html += `<div class="chart-box"><h3>Self-Efficacy Change (Δ)</h3><canvas id="chartDelta"></canvas></div>`
+  html += `</div>`
+
+  // Prepare trajectory data: % strong per dimension per round
+  const dims = ['specific', 'measurable', 'achievable', 'relevant', 'timeBound']
+  const trajRoundNums = [...new Set(dimensionTrajectories.map(d => d.round))].sort((a, b) => a - b)
+  const trajData: Record<string, number[]> = {}
+  for (const dim of dims) {
+    trajData[dim] = trajRoundNums.map(rn => {
+      const entries = dimensionTrajectories.filter(d => d.round === rn)
+      if (entries.length === 0) return 0
+      return Math.round(entries.filter(d => d.ratings[dim] === 'strong').length / entries.length * 100)
+    })
+  }
+
+  // Compute deltas for delta chart
+  const deltaData: Record<string, number> = {}
+  for (const c of cells) {
+    const deltas: number[] = []
+    for (const p of participants.filter(p => `${p.condition_a}_${p.condition_b}` === c)) {
+      const pre = preSurveys.get(p.id)
+      const post = postSurveys.get(p.id)
+      if (pre && post) {
+        const preSE = Number(pre.goal_self_efficacy)
+        const postSE = Number(post.post_goal_self_efficacy)
+        if (!isNaN(preSE) && !isNaN(postSE)) deltas.push(postSE - preSE)
+      }
+    }
+    deltaData[c] = deltas.length > 0 ? mean(deltas) : 0
+  }
+
+  // Round distribution for chart
+  const maxRoundForChart = Math.max(...roundCounts, 1)
+  const roundDistForChart: number[] = []
+  for (let i = 0; i <= maxRoundForChart; i++) {
+    roundDistForChart.push(roundCounts.filter(r => r === i).length)
+  }
+
+  const dimColors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6']
+
+  html += `
+<script>
+const cellLabels = ${JSON.stringify(cellLabels)};
+const cellColors = ${JSON.stringify(cellColors)};
+const defaults = Chart.defaults;
+defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif";
+defaults.font.size = 11;
+defaults.plugins.legend.labels.boxWidth = 12;
+
+// Recruitment
+new Chart(document.getElementById('chartRecruit'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Completed', data: ${JSON.stringify(recruitmentRows.map(r => r.completed))}, backgroundColor: cellColors },
+      { label: 'Target', data: [50,50,50,50], backgroundColor: 'rgba(0,0,0,0)', borderColor: '#d4d4d8', borderWidth: 1, borderDash: [4,4] }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: true, max: 60 } }, plugins: { legend: { display: true } } }
+});
+
+// Self-Efficacy Pre/Post
+new Chart(document.getElementById('chartSE'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Pre', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].pre_se).toFixed(2)))}, backgroundColor: cellColors.map(c => c + '66') },
+      { label: 'Post', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].post_se).toFixed(2)))}, backgroundColor: cellColors }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: false, min: 1, max: 7 } } }
+});
+
+// KGC Pre/Post
+new Chart(document.getElementById('chartKGC'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Pre', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].pre_kgc).toFixed(2)))}, backgroundColor: cellColors.map(c => c + '66') },
+      { label: 'Post', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].post_kgc).toFixed(2)))}, backgroundColor: cellColors }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: false, min: 1, max: 5 } } }
+});
+
+// Post Single Items
+new Chart(document.getElementById('chartPost'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Clarity', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].post_clarity).toFixed(2)))}, backgroundColor: '#3b82f6' },
+      { label: 'Readiness', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].post_readiness).toFixed(2)))}, backgroundColor: '#22c55e' },
+      { label: 'Energy', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].post_energy).toFixed(2)))}, backgroundColor: '#eab308' }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: false, min: 1, max: 7 } } }
+});
+
+// Process Experience
+new Chart(document.getElementById('chartProcess'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Helpfulness', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].process_help).toFixed(2)))}, backgroundColor: '#22c55e' },
+      { label: 'Frustration', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].process_frust).toFixed(2)))}, backgroundColor: '#ef4444' }
+    ]
+  },
+  options: { scales: { y: { beginAtZero: false, min: 1, max: 7 } } }
+});
+
+// Refinement Rounds Distribution
+new Chart(document.getElementById('chartRounds'), {
+  type: 'bar',
+  data: {
+    labels: ${JSON.stringify(Array.from({length: maxRoundForChart + 1}, (_, i) => i.toString()))},
+    datasets: [{ label: 'Participants', data: ${JSON.stringify(roundDistForChart)}, backgroundColor: '#f97316' }]
+  },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+// Quality Trajectory (% strong per dimension across rounds)
+new Chart(document.getElementById('chartTrajectory'), {
+  type: 'line',
+  data: {
+    labels: ${JSON.stringify(trajRoundNums.map(r => 'R' + r))},
+    datasets: ${JSON.stringify(dims.map((dim, i) => ({
+      label: dim,
+      data: trajData[dim],
+      borderColor: dimColors[i],
+      backgroundColor: dimColors[i] + '22',
+      tension: 0.3,
+      fill: false,
+      pointRadius: 4,
+    })))}
+  },
+  options: { scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '% Strong' } } } }
+});
+
+// Self-Efficacy Delta
+new Chart(document.getElementById('chartDelta'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [{ label: 'Δ Self-Efficacy', data: ${JSON.stringify(cells.map(c => +(deltaData[c]).toFixed(2)))}, backgroundColor: cellColors }]
+  },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+</script>`
 
   html += `</body></html>`
 
