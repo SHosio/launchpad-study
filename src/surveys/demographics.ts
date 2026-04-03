@@ -25,7 +25,7 @@ export const demographicsSurvey = {
               <p>We collect your survey responses, goal text, and interaction data (e.g., timestamps, number of revisions). Your Prolific ID is stored to link your session with the optional follow-up; it will be replaced with an anonymous identifier before analysis.</p>
 
               <h3 style="margin-top: 1.2em;">Legal basis &amp; data handling (GDPR Art. 6(1)(a))</h3>
-              <p>Processing is based on your freely given consent. Data is stored on encrypted servers within the EU/EEA. Only the research team has access to identifiable data. Your Prolific ID will be pseudonymised after the follow-up window closes and permanently deleted upon study completion. Anonymised data may be shared in academic publications and open datasets.</p>
+              <p>Processing is based on your freely given consent. Data is stored on encrypted servers within the EU/EEA. Only the research team has access to identifiable data. Your Prolific ID will be pseudonymised after the follow-up window closes and permanently deleted upon study completion. Anonymised data may be shared in academic publications, open datasets, and related online materials about the system (e.g., project website).</p>
 
               <h3 style="margin-top: 1.2em;">Your rights</h3>
               <p>Under the EU General Data Protection Regulation (GDPR), you have the right to access, rectify, or request deletion of your personal data at any time by contacting the principal investigator. Withdrawal does not affect the lawfulness of processing carried out before withdrawal.</p>
@@ -91,6 +91,14 @@ export const demographicsSurvey = {
           isRequired: true,
           choices: [
             {
+              value: "bachelors_enrolled",
+              text: "Bachelor's degree (currently enrolled)",
+            },
+            {
+              value: "bachelors_completed",
+              text: "Bachelor's degree (completed)",
+            },
+            {
               value: "masters_enrolled",
               text: "Master's degree (currently enrolled)",
             },
@@ -105,6 +113,10 @@ export const demographicsSurvey = {
             {
               value: "doctorate_completed",
               text: "Doctorate (completed)",
+            },
+            {
+              value: "other",
+              text: "Other",
             },
           ],
         },
