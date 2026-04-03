@@ -323,7 +323,84 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   }
   html += `</tbody></table>`
 
-  // --- Primary DVs ---
+  // --- Main Effects (pooled) ---
+  type PooledData = { pre_se: number[], post_se: number[], delta_se: number[], pre_kgc: number[], post_kgc: number[], delta_kgc: number[], pre_energy: number[], post_energy: number[], delta_energy: number[], post_clarity: number[], post_readiness: number[], process_help: number[], process_frust: number[], session_mins: number[] }
+  function emptyPooled(): PooledData { return { pre_se: [], post_se: [], delta_se: [], pre_kgc: [], post_kgc: [], delta_kgc: [], pre_energy: [], post_energy: [], delta_energy: [], post_clarity: [], post_readiness: [], process_help: [], process_frust: [], session_mins: [] } }
+
+  const pooled: Record<string, PooledData> = { A1: emptyPooled(), A2: emptyPooled(), B1: emptyPooled(), B2: emptyPooled() }
+
+  for (const p of participants) {
+    const targets = [pooled[p.condition_a], pooled[p.condition_b]]
+    const pre = preSurveys.get(p.id)
+    const post = postSurveys.get(p.id)
+
+    for (const t of targets) {
+      if (pre) {
+        const se = Number(pre.goal_self_efficacy); if (!isNaN(se)) t.pre_se.push(se)
+        const kgc = kgcComposite(pre); if (kgc !== null) t.pre_kgc.push(kgc)
+        const energy = Number(pre.baseline_energy); if (!isNaN(energy)) t.pre_energy.push(energy)
+      }
+      if (post) {
+        const se = Number(post.post_goal_self_efficacy); if (!isNaN(se)) t.post_se.push(se)
+        const kgc = kgcComposite(post); if (kgc !== null) t.post_kgc.push(kgc)
+        const energy = Number(post.post_baseline_energy); if (!isNaN(energy)) t.post_energy.push(energy)
+        const clarity = Number(post.post_goal_clarity); if (!isNaN(clarity)) t.post_clarity.push(clarity)
+        const readiness = Number(post.post_activation); if (!isNaN(readiness)) t.post_readiness.push(readiness)
+        const help = Number(post.process_helpful); if (!isNaN(help)) t.process_help.push(help)
+        const frust = Number(post.process_frustrating); if (!isNaN(frust)) t.process_frust.push(frust)
+      }
+      if (pre && post) {
+        const preSE = Number(pre.goal_self_efficacy); const postSE = Number(post.post_goal_self_efficacy)
+        if (!isNaN(preSE) && !isNaN(postSE)) t.delta_se.push(postSE - preSE)
+        const preK = kgcComposite(pre); const postK = kgcComposite(post)
+        if (preK !== null && postK !== null) t.delta_kgc.push(postK - preK)
+        const preE = Number(pre.baseline_energy); const postE = Number(post.post_baseline_energy)
+        if (!isNaN(preE) && !isNaN(postE)) t.delta_energy.push(postE - preE)
+      }
+      const mins = sessionMinutes(p.session_start_at, p.session_end_at)
+      if (mins !== null) t.session_mins.push(mins)
+    }
+  }
+
+  function mainEffectTable(title: string, factorLabels: [string, string], keys: [string, string], rows: { label: string, getter: (d: PooledData) => number[] }[]): string {
+    let h = `<h3 style="font-size:0.95rem;font-weight:600;margin:1rem 0 0.5rem;">${escapeHtml(title)}</h3><table><thead><tr><th>Measure</th><th>${factorLabels[0]}</th><th>${factorLabels[1]}</th><th>Diff</th></tr></thead><tbody>`
+    for (const row of rows) {
+      const d0 = row.getter(pooled[keys[0]])
+      const d1 = row.getter(pooled[keys[1]])
+      const m0 = mean(d0); const m1 = mean(d1)
+      const diff = d0.length > 0 && d1.length > 0 ? (m1 - m0) : NaN
+      h += `<tr><td class="label">${escapeHtml(row.label)}</td>`
+      h += statCell(d0)
+      h += statCell(d1)
+      h += `<td class="num">${!isNaN(diff) ? (diff >= 0 ? '+' : '') + fmt(diff) : '—'}</td></tr>`
+    }
+    h += `</tbody></table>`
+    return h
+  }
+
+  const mainEffectRows: { label: string, getter: (d: PooledData) => number[] }[] = [
+    { label: 'Self-Efficacy Pre', getter: d => d.pre_se },
+    { label: 'Self-Efficacy Post', getter: d => d.post_se },
+    { label: 'Self-Efficacy Δ', getter: d => d.delta_se },
+    { label: 'KGC Pre', getter: d => d.pre_kgc },
+    { label: 'KGC Post', getter: d => d.post_kgc },
+    { label: 'KGC Δ', getter: d => d.delta_kgc },
+    { label: 'Energy Pre', getter: d => d.pre_energy },
+    { label: 'Energy Post', getter: d => d.post_energy },
+    { label: 'Energy Δ', getter: d => d.delta_energy },
+    { label: 'Goal Clarity (post)', getter: d => d.post_clarity },
+    { label: 'Readiness (post)', getter: d => d.post_readiness },
+    { label: 'Helpfulness', getter: d => d.process_help },
+    { label: 'Frustration', getter: d => d.process_frust },
+    { label: 'Session (min)', getter: d => d.session_mins },
+  ]
+
+  html += `<h2>Main Effects (Pooled)</h2>`
+  html += mainEffectTable('Factor A: AI Coach', ['A1 — No AI', 'A2 — AI Coach'], ['A1', 'A2'], mainEffectRows)
+  html += mainEffectTable('Factor B: Emotional Anchoring', ['B1 — No Anchoring', 'B2 — Anchoring'], ['B1', 'B2'], mainEffectRows)
+
+  // --- Per-Cell DVs ---
+  html += `<h2>Per-Cell Breakdown</h2>`
   html += metricsTable('Self-Efficacy (1-7)', [
     { label: 'Pre', data: Object.fromEntries(cells.map(c => [c, cellData[c].pre_se])) },
     { label: 'Post', data: Object.fromEntries(cells.map(c => [c, cellData[c].post_se])) },
@@ -364,10 +441,27 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
 
   html += `<p style="font-size:0.72rem;color:#71717a;margin-top:-0.5rem;">* KGC = Klein et al. Goal Commitment Scale (2001). 5 items, 1-5 Likert. Items 1, 2, 4 are reverse-coded so higher = more committed.</p>`
 
+  html += metricsTable('Energy (1-7)', [
+    { label: 'Pre', data: Object.fromEntries(cells.map(c => [c, cellData[c].pre_energy])) },
+    { label: 'Post', data: Object.fromEntries(cells.map(c => [c, cellData[c].post_energy])) },
+    { label: 'Δ (post-pre)', data: Object.fromEntries(cells.map(c => {
+      const deltas: number[] = []
+      for (const p of participants.filter(p => `${p.condition_a}_${p.condition_b}` === c)) {
+        const pre = preSurveys.get(p.id)
+        const post = postSurveys.get(p.id)
+        if (pre && post) {
+          const preE = Number(pre.baseline_energy)
+          const postE = Number(post.post_baseline_energy)
+          if (!isNaN(preE) && !isNaN(postE)) deltas.push(postE - preE)
+        }
+      }
+      return [c, deltas]
+    })) },
+  ])
+
   html += metricsTable('Post-Session Single Items', [
     { label: 'Goal Clarity (1-7)', data: Object.fromEntries(cells.map(c => [c, cellData[c].post_clarity])) },
     { label: 'Readiness (1-7)', data: Object.fromEntries(cells.map(c => [c, cellData[c].post_readiness])) },
-    { label: 'Energy (1-7)', data: Object.fromEntries(cells.map(c => [c, cellData[c].post_energy])) },
   ])
 
   html += metricsTable('Process Experience (1-7)', [
@@ -534,19 +628,22 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
 
   // Row 4: Quality Trajectory + Dimension Compliance
   html += `<div class="chart-row">`
-  html += `<div class="chart-box"><h3>Quality Trajectory by Round (% Strong)</h3><canvas id="chartTrajectory"></canvas></div>`
+  html += `<div class="chart-box"><h3>Quality Trajectory by Round (Mean Score)</h3><canvas id="chartTrajectory"></canvas></div>`
   html += `<div class="chart-box"><h3>Self-Efficacy Change (Δ)</h3><canvas id="chartDelta"></canvas></div>`
   html += `</div>`
 
-  // Prepare trajectory data: % strong per dimension per round
+  // Prepare trajectory data: mean quality score per dimension per round (weak=1, adequate=2, strong=3)
   const dims = ['specific', 'measurable', 'achievable', 'relevant', 'timeBound']
   const trajRoundNums = [...new Set(dimensionTrajectories.map(d => d.round))].sort((a, b) => a - b)
+  const ratingToScore = (r: string): number => r === 'strong' ? 3 : r === 'adequate' ? 2 : 1
   const trajData: Record<string, number[]> = {}
+  const trajN: number[] = trajRoundNums.map(rn => dimensionTrajectories.filter(d => d.round === rn).length)
   for (const dim of dims) {
     trajData[dim] = trajRoundNums.map(rn => {
       const entries = dimensionTrajectories.filter(d => d.round === rn)
       if (entries.length === 0) return 0
-      return Math.round(entries.filter(d => d.ratings[dim] === 'strong').length / entries.length * 100)
+      const scores = entries.map(d => ratingToScore(d.ratings[dim]))
+      return +(scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)
     })
   }
 
@@ -660,11 +757,11 @@ new Chart(document.getElementById('chartRounds'), {
   options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
 });
 
-// Quality Trajectory (% strong per dimension across rounds)
+// Quality Trajectory (mean score per dimension across rounds, weak=1 adequate=2 strong=3)
 new Chart(document.getElementById('chartTrajectory'), {
   type: 'line',
   data: {
-    labels: ${JSON.stringify(trajRoundNums.map(r => 'R' + r))},
+    labels: ${JSON.stringify(trajRoundNums.map((r, i) => `R${r} (n=${trajN[i]})`))},
     datasets: ${JSON.stringify(dims.map((dim, i) => ({
       label: dim,
       data: trajData[dim],
@@ -675,7 +772,7 @@ new Chart(document.getElementById('chartTrajectory'), {
       pointRadius: 4,
     })))}
   },
-  options: { scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '% Strong' } } } }
+  options: { scales: { y: { min: 1, max: 3, title: { display: true, text: 'Mean (1=weak, 2=adequate, 3=strong)' } } } }
 });
 
 // Self-Efficacy Delta

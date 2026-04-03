@@ -1,5 +1,4 @@
 import { Router, type Request, type Response, type NextFunction } from 'express'
-import path from 'path'
 import db from '../db.js'
 
 const router = Router()
@@ -73,10 +72,12 @@ router.post('/reset', requireAdmin, (_req: Request, res: Response) => {
 })
 
 router.get('/download-db', requireAdmin, (_req: Request, res: Response) => {
-  const dbPath = process.env.DATABASE_PATH || './data/study.db'
-  const resolved = path.resolve(dbPath)
-  res.download(resolved, 'study.db', (err) => {
-    if (err) res.status(500).json({ error: 'Failed to download database' })
+  // Use the actual path from the open db instance to avoid path resolution mismatches
+  const dbFilePath = (db as any).name as string
+  // Checkpoint WAL to ensure all data is in the main file before download
+  db.pragma('wal_checkpoint(FULL)')
+  res.download(dbFilePath, 'study.db', (err) => {
+    if (err && !res.headersSent) res.status(500).json({ error: 'Failed to download database' })
   })
 })
 

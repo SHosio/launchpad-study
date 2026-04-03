@@ -111,8 +111,16 @@ https://launchpad-study-production.up.railway.app/study              # Auto-rand
 https://launchpad-study-production.up.railway.app/test               # Test dashboard
 https://launchpad-study-production.up.railway.app/api/admin/dash?password=launchpad-admin-2026   # Data dashboard
 https://launchpad-study-production.up.railway.app/api/admin/stats?password=launchpad-admin-2026  # Quick stats
-https://launchpad-study-production.up.railway.app/api/admin/export?password=launchpad-admin-2026 # Full export
+https://launchpad-study-production.up.railway.app/api/admin/export?password=launchpad-admin-2026 # Full JSON export
+https://launchpad-study-production.up.railway.app/api/admin/download-db?password=launchpad-admin-2026  # Download SQLite DB
 ```
+
+### Data Access
+
+- **Download production DB locally:** `curl -o data/production-study.db "https://launchpad-study-production.up.railway.app/api/admin/download-db?password=launchpad-admin-2026"`
+- **Download JSON export:** `curl -o data/production-export.json "https://launchpad-study-production.up.railway.app/api/admin/export?password=launchpad-admin-2026"`
+- **Seed local DB with synthetic data:** `npx tsx server/seed-synthetic.ts`
+- Production DB is SQLite at `/app/data/study.db` on Railway (persistent volume)
 
 ### Local Dev Testing URLs
 
