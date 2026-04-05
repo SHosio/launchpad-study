@@ -8,7 +8,9 @@ const RATERS_PER_BATCH = 5
 
 /**
  * Seed batches from completed goals. Run once via /api/rating/seed?password=xxx
- * Creates randomized batches of 8 goals, balanced across conditions.
+ * Creates randomized batches of 8 goals mixing initial (A2 only) and final texts.
+ * Constraint: no batch contains both initial and final from the same participant.
+ * Raters are blind to which version they're rating.
  */
 router.post('/seed', (req: Request, res: Response) => {
   const password = req.query.password || req.headers['x-admin-password']
@@ -16,20 +18,15 @@ router.post('/seed', (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Unauthorized' })
   }
 
-  const version = (req.query.version || 'final') as string
-  if (!['initial', 'final'].includes(version)) {
-    return res.status(400).json({ error: 'version must be "initial" or "final"' })
-  }
-
-  // Check if batches already exist for this version
-  const existing = db.prepare('SELECT COUNT(*) as c FROM rating_batches WHERE goal_version = ?').get(version) as any
-  if (existing.c > 0) {
-    return res.status(400).json({ error: `Batches already exist for version "${version}". Delete them first if you want to re-seed.` })
+  // Check if batches already exist
+  const existing = (db.prepare('SELECT COUNT(*) as c FROM rating_batches').get() as any).c
+  if (existing > 0) {
+    return res.status(400).json({ error: 'Batches already exist. Reset first if you want to re-seed.' })
   }
 
   // Get completed participants and their goals
   const goals = db.prepare(`
-    SELECT g.id as goal_id, g.initial_text, g.final_text, p.condition_a, p.condition_b
+    SELECT g.id as goal_id, g.participant_id, g.initial_text, g.final_text, p.condition_a
     FROM goals g
     JOIN participants p ON g.participant_id = p.id
     WHERE p.status = 'completed'
@@ -37,50 +34,72 @@ router.post('/seed', (req: Request, res: Response) => {
   `).all() as any[]
 
   // Deduplicate: take last goal per participant
-  const participantGoals = new Map<number, any>()
+  const byParticipant = new Map<number, any>()
   for (const g of goals) {
-    participantGoals.set(g.goal_id, g)
+    byParticipant.set(g.participant_id, g)
   }
 
-  let goalList = Array.from(participantGoals.values())
+  // Build rating items: final for everyone, initial for A2 only
+  const items: { goal_id: number; participant_id: number; version: string; text: string }[] = []
 
-  // For initial version, only include A2 goals (A1 has no coaching)
-  if (version === 'initial') {
-    goalList = goalList.filter(g => g.condition_a === 'A2')
+  for (const g of byParticipant.values()) {
+    const finalText = g.final_text || g.initial_text
+    if (finalText?.trim()) {
+      items.push({ goal_id: g.goal_id, participant_id: g.participant_id, version: 'final', text: finalText })
+    }
+    // Initial text only for A2 (coached) participants — enables within-person comparison
+    if (g.condition_a === 'A2' && g.initial_text?.trim()) {
+      items.push({ goal_id: g.goal_id, participant_id: g.participant_id, version: 'initial', text: g.initial_text })
+    }
   }
-
-  // Get the text for this version
-  const goalsWithText = goalList.map(g => ({
-    goal_id: g.goal_id,
-    text: version === 'initial' ? g.initial_text : (g.final_text || g.initial_text),
-  })).filter(g => g.text && g.text.trim().length > 0)
 
   // Shuffle (Fisher-Yates)
-  for (let i = goalsWithText.length - 1; i > 0; i--) {
+  for (let i = items.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
-    ;[goalsWithText[i], goalsWithText[j]] = [goalsWithText[j], goalsWithText[i]]
+    ;[items[i], items[j]] = [items[j], items[i]]
   }
 
-  // Assign to batches
+  // Assign to batches with constraint: no batch has both versions from same participant
+  const batches: typeof items[] = [[]]
+  const batchParticipants: Set<number>[] = [new Set()]
+
+  for (const item of items) {
+    let placed = false
+    for (let b = 0; b < batches.length; b++) {
+      if (batches[b].length < BATCH_SIZE && !batchParticipants[b].has(item.participant_id)) {
+        batches[b].push(item)
+        batchParticipants[b].add(item.participant_id)
+        placed = true
+        break
+      }
+    }
+    if (!placed) {
+      batches.push([item])
+      batchParticipants.push(new Set([item.participant_id]))
+    }
+  }
+
+  // Write to DB
   const insert = db.prepare('INSERT INTO rating_batches (batch_number, goal_id, goal_version, display_order, goal_text) VALUES (?, ?, ?, ?, ?)')
-  let batchNum = 1
-  for (let i = 0; i < goalsWithText.length; i++) {
-    const orderInBatch = (i % BATCH_SIZE) + 1
-    insert.run(batchNum, goalsWithText[i].goal_id, version, orderInBatch, goalsWithText[i].text)
-    if (orderInBatch === BATCH_SIZE) batchNum++
+  for (let b = 0; b < batches.length; b++) {
+    for (let i = 0; i < batches[b].length; i++) {
+      const item = batches[b][i]
+      insert.run(b + 1, item.goal_id, item.version, i + 1, item.text)
+    }
   }
 
-  // Handle leftover goals (last batch may be < 8)
-  const totalBatches = Math.ceil(goalsWithText.length / BATCH_SIZE)
+  const initialCount = items.filter(i => i.version === 'initial').length
+  const finalCount = items.filter(i => i.version === 'final').length
 
   res.json({
     seeded: true,
-    version,
-    total_goals: goalsWithText.length,
-    total_batches: totalBatches,
+    total_goals: items.length,
+    initial_goals: initialCount,
+    final_goals: finalCount,
+    total_batches: batches.length,
     goals_per_batch: BATCH_SIZE,
     raters_per_batch: RATERS_PER_BATCH,
-    total_rater_slots: totalBatches * RATERS_PER_BATCH,
+    total_rater_slots: batches.length * RATERS_PER_BATCH,
   })
 })
 
