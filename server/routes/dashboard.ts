@@ -595,6 +595,92 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     html += `<p style="color:#71717a">No A2 data yet.</p>`
   }
 
+  // --- Human Goal Ratings ---
+  const hasRatings = (db.prepare('SELECT COUNT(*) as c FROM goal_ratings').get() as any).c > 0
+  if (hasRatings) {
+    const ratingDims = ['rating_specific', 'rating_measurable', 'rating_achievable', 'rating_relevant', 'rating_timebound', 'rating_holistic']
+    const dimLabels = ['Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-Bound', 'Holistic']
+
+    // Get mean ratings per goal, then merge with participant condition
+    const goalRatings = db.prepare(`
+      SELECT gr.goal_id, gr.goal_version,
+        AVG(gr.rating_specific) as specific, AVG(gr.rating_measurable) as measurable,
+        AVG(gr.rating_achievable) as achievable, AVG(gr.rating_relevant) as relevant,
+        AVG(gr.rating_timebound) as timebound, AVG(gr.rating_holistic) as holistic,
+        COUNT(*) as n_raters
+      FROM goal_ratings gr
+      GROUP BY gr.goal_id, gr.goal_version
+    `).all() as any[]
+
+    // Map goal_id to condition
+    const goalToCondition = new Map<number, { a: string, b: string }>()
+    for (const p of participants) {
+      const goal = participantGoals.get(p.id)
+      if (goal) goalToCondition.set(goal.id, { a: p.condition_a, b: p.condition_b })
+    }
+
+    // Group by condition for final goals
+    const finalRatings = goalRatings.filter(r => r.goal_version === 'final')
+    if (finalRatings.length > 0) {
+      html += `<h2>Human Goal Quality Ratings (Final Goals)</h2>`
+
+      // Table by condition
+      const ratingsByCell: Record<string, any[]> = {}
+      for (const cell of cells) ratingsByCell[cell] = []
+      for (const r of finalRatings) {
+        const cond = goalToCondition.get(r.goal_id)
+        if (cond) {
+          const cell = `${cond.a}_${cond.b}`
+          if (ratingsByCell[cell]) ratingsByCell[cell].push(r)
+        }
+      }
+
+      html += `<table><thead><tr><th>Dimension</th>`
+      for (const cell of cells) html += `<th>${cellLabel(cell.split('_')[0], cell.split('_')[1])}</th>`
+      html += `</tr></thead><tbody>`
+      const dimKeys = ['holistic', 'specific', 'measurable', 'achievable', 'relevant', 'timebound']
+      const dimNames = ['Overall Quality', 'Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-Bound']
+      for (let d = 0; d < dimKeys.length; d++) {
+        html += `<tr><td class="label">${dimNames[d]}</td>`
+        for (const cell of cells) {
+          const vals = ratingsByCell[cell].map(r => r[dimKeys[d]]).filter(v => v != null)
+          if (vals.length === 0) { html += `<td class="num">—</td>`; continue }
+          const m = vals.reduce((a: number, b: number) => a + b, 0) / vals.length
+          const s = vals.length > 1 ? Math.sqrt(vals.reduce((sum: number, v: number) => sum + (v - m) ** 2, 0) / (vals.length - 1)) : 0
+          html += `<td class="num">${m.toFixed(2)} <span class="sd">±${s.toFixed(2)}</span> <span class="n">(n=${vals.length})</span></td>`
+        }
+        html += `</tr>`
+      }
+      html += `</tbody></table>`
+
+      // Main effects
+      html += `<table><thead><tr><th>Dimension</th><th>A1 (No AI)</th><th>A2 (AI)</th><th>B1 (No Anch)</th><th>B2 (Anch)</th></tr></thead><tbody>`
+      for (let d = 0; d < dimKeys.length; d++) {
+        const a1 = finalRatings.filter(r => { const c = goalToCondition.get(r.goal_id); return c?.a === 'A1' }).map(r => r[dimKeys[d]]).filter(v => v != null)
+        const a2 = finalRatings.filter(r => { const c = goalToCondition.get(r.goal_id); return c?.a === 'A2' }).map(r => r[dimKeys[d]]).filter(v => v != null)
+        const b1 = finalRatings.filter(r => { const c = goalToCondition.get(r.goal_id); return c?.b === 'B1' }).map(r => r[dimKeys[d]]).filter(v => v != null)
+        const b2 = finalRatings.filter(r => { const c = goalToCondition.get(r.goal_id); return c?.b === 'B2' }).map(r => r[dimKeys[d]]).filter(v => v != null)
+        html += `<tr><td class="label">${dimNames[d]}</td>`
+        for (const vals of [a1, a2, b1, b2]) {
+          if (vals.length === 0) { html += `<td class="num">—</td>`; continue }
+          const m = vals.reduce((a: number, b: number) => a + b, 0) / vals.length
+          html += `<td class="num">${m.toFixed(2)} <span class="n">(n=${vals.length})</span></td>`
+        }
+        html += `</tr>`
+      }
+      html += `</tbody></table>`
+
+      // Rating progress
+      const ratingStatus = db.prepare(`
+        SELECT batch_number, COUNT(DISTINCT rater_id) as raters
+        FROM goal_ratings GROUP BY batch_number
+      `).all() as any[]
+      const completedBatches = ratingStatus.filter(b => b.raters >= 5).length
+      const totalBatches = db.prepare('SELECT COUNT(DISTINCT batch_number) as c FROM rating_batches WHERE goal_version = "final"').get() as any
+      html += `<p style="font-size:0.75rem;color:#71717a;margin-top:0.5rem;">Rating progress: ${completedBatches}/${totalBatches?.c || '?'} batches complete (5 raters each). ${finalRatings.length} goals rated.</p>`
+    }
+  }
+
   // --- Goal Texts ---
   html += `<h2>Goal Texts</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Initial Goal</th><th>Words</th><th>Final Goal</th><th>Words</th><th>Rounds</th></tr></thead><tbody>`
   for (const g of allGoalTexts) {

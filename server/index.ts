@@ -24,6 +24,7 @@ import aiRouter from './routes/ai.js'
 import followupRouter from './routes/followup.js'
 import adminRouter from './routes/admin.js'
 import dashboardRouter from './routes/dashboard.js'
+import ratingRouter from './routes/rating.js'
 
 app.use('/api/participants', participantsRouter)
 app.use('/api/surveys', surveysRouter)
@@ -33,6 +34,8 @@ app.use('/api/ai', aiRouter)
 app.use('/api/followup', followupRouter)
 app.use('/api/admin', adminRouter)
 app.use('/api/admin', dashboardRouter)
+app.use('/api/rating', ratingRouter)
+app.use('/rate', ratingRouter)
 
 // Health check
 app.get('/api/health', (_req, res) => {

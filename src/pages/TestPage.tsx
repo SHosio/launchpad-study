@@ -204,6 +204,71 @@ export default function TestPage() {
             </p>
           )}
         </div>
+
+        {/* Goal Rating Task */}
+        <div className="rounded-xl border border-blue-200 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-blue-600">Goal Rating Task</h2>
+          <p className="text-xs text-zinc-500">Human quality ratings for goal texts. Seed batches first, then send raters via Prolific.</p>
+
+          <div className="rounded-lg bg-zinc-50 border border-zinc-200 p-3 space-y-2 text-xs font-mono text-zinc-700">
+            <p className="text-zinc-400"># Prolific URL for raters:</p>
+            <p className="text-zinc-800">{'https://<your-domain>/rate?PROLIFIC_PID={{%PROLIFIC_PID%}}'}</p>
+            <p className="text-zinc-400 mt-2"># Test locally:</p>
+            <p className="text-zinc-800">{'http://localhost:3000/rate?PROLIFIC_PID=test_rater_1'}</p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={async () => {
+                if (!adminPassword) return
+                try {
+                  const res = await fetch(`/api/rating/seed?password=${encodeURIComponent(adminPassword)}&version=final`, { method: 'POST' })
+                  const data = await res.json()
+                  setResetStatus(res.ok ? `Seeded: ${JSON.stringify(data)}` : `Error: ${data.error}`)
+                } catch (err) { setResetStatus(`Error: ${err}`) }
+              }}
+              className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
+            >
+              Seed Final Goal Batches
+            </button>
+            <button
+              onClick={async () => {
+                if (!adminPassword) return
+                try {
+                  const res = await fetch(`/api/rating/seed?password=${encodeURIComponent(adminPassword)}&version=initial`, { method: 'POST' })
+                  const data = await res.json()
+                  setResetStatus(res.ok ? `Seeded: ${JSON.stringify(data)}` : `Error: ${data.error}`)
+                } catch (err) { setResetStatus(`Error: ${err}`) }
+              }}
+              className="rounded-lg bg-blue-500 text-white px-4 py-2 text-sm font-medium hover:bg-blue-600 transition-colors"
+            >
+              Seed Initial Goal Batches (A2)
+            </button>
+            <a
+              href={adminPassword ? `/api/rating/status?password=${encodeURIComponent(adminPassword)}` : undefined}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => { if (!adminPassword) e.preventDefault() }}
+              className="rounded-lg bg-zinc-800 text-white px-4 py-2 text-sm font-medium hover:bg-zinc-700 transition-colors"
+            >
+              Rating Status
+            </a>
+            <button
+              onClick={async () => {
+                if (!adminPassword) return
+                if (!confirm('Delete ALL rating data (batches, raters, ratings)? This cannot be undone.')) return
+                try {
+                  const res = await fetch(`/api/rating/reset?password=${encodeURIComponent(adminPassword)}`, { method: 'POST' })
+                  const data = await res.json()
+                  setResetStatus(res.ok ? `Deleted rating data: ${JSON.stringify(data)}` : `Error: ${data.error}`)
+                } catch (err) { setResetStatus(`Error: ${err}`) }
+              }}
+              className="rounded-lg bg-red-50 border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition-colors"
+            >
+              Delete Rating Data
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

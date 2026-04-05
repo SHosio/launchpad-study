@@ -64,6 +64,39 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS rating_batches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    batch_number INTEGER NOT NULL,
+    goal_id INTEGER NOT NULL REFERENCES goals(id),
+    goal_version TEXT NOT NULL CHECK(goal_version IN ('initial', 'final')),
+    display_order INTEGER NOT NULL,
+    goal_text TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS rating_raters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prolific_pid TEXT UNIQUE NOT NULL,
+    batch_number INTEGER NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS goal_ratings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rater_id INTEGER NOT NULL REFERENCES rating_raters(id),
+    batch_number INTEGER NOT NULL,
+    goal_id INTEGER NOT NULL REFERENCES goals(id),
+    goal_version TEXT NOT NULL CHECK(goal_version IN ('initial', 'final')),
+    rating_specific INTEGER NOT NULL CHECK(rating_specific BETWEEN 1 AND 5),
+    rating_measurable INTEGER NOT NULL CHECK(rating_measurable BETWEEN 1 AND 5),
+    rating_achievable INTEGER NOT NULL CHECK(rating_achievable BETWEEN 1 AND 5),
+    rating_relevant INTEGER NOT NULL CHECK(rating_relevant BETWEEN 1 AND 5),
+    rating_timebound INTEGER NOT NULL CHECK(rating_timebound BETWEEN 1 AND 5),
+    rating_holistic INTEGER NOT NULL CHECK(rating_holistic BETWEEN 1 AND 5),
+    completed_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS followup_responses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     participant_id INTEGER NOT NULL REFERENCES participants(id),
