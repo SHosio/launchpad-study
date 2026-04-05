@@ -6,9 +6,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Standalone research instrument for Study 1: "Beneficial Friction: How AI Coaching Improves Goal Articulation and Readiness." This is a 2x2 between-subjects experiment (AI Coach x Emotional Anchoring) deployed on Prolific.
+Standalone research instrument for Study 1: "Beneficial Friction: How AI Coaching Improves Goal Articulation and Readiness in Graduate-Educated Adults." This is a 2x2 between-subjects experiment (AI Coach x Emotional Anchoring) deployed on Prolific.
 
-**This is NOT part of Edge Academia Portal.** It's an independent project with its own repo, deployment, and database. The production LaunchPad tool at portal.edgeacademia.com is a separate private project.
+**Paper:** `/Users/simohosio/Documents/Academic/Papers/Launchpad/paper.tex` (ACM CHI format)
+
+**This is NOT part of Edge Academia Portal.** It's an independent project with its own repo, deployment, and database.
+
+## Current Status (as of April 2026)
+
+**Data collection complete.** N=128 completers (31-33 per cell), matching the power analysis target (G*Power: f=0.25, α=.05, power=.80, total N=128). Data is on Railway production. Analysis notebooks are in `analysis/`.
+
+### Key Decisions Made During This Session
+
+1. **Population broadened** from "early-career academics" to "graduate-educated adults" (master's/doctorate enrolled or completed + bachelor's). Prolific screener: English primary language, 95-100% approval rate, 200+ submissions, anglophone countries.
+
+2. **1-week follow-up omitted.** Self-efficacy was null at two time points; a third null measurement adds no value. Follow-up saved for Paper 2 (iterative AI coach redesign).
+
+3. **Human goal quality rating omitted for now.** Was in the design doc (Prolific raters, 1-5 rubric) but not yet conducted. The AI telemetry data (SMART dimension ratings R1→R2) and text features (dates, numbers, deadline words) serve as objective quality proxies. Human rating can be done later if needed.
+
+4. **Power analysis revised.** Original design doc said N=200 (50/cell), paper draft had N=400 (100/cell). Final: N=128 (32/cell) based on G*Power for medium effect f=0.25. Justified as minimum practically meaningful threshold for design implications.
+
+5. **Coach perception items changed** from 1-5 agree/disagree statements to 1-7 direct questions to match all other custom scales. Dashboard labels updated to match.
+
+6. **Priming compliance open-ended dropped** ("What did you do to prepare yourself?"). Only the energization scale remains. Reduces friction in the B2 flow.
+
+7. **AI coaching prompt tightened.** Socratic tone, stricter rating calibration ("adequate" is the default for first drafts, "strong" reserved for genuinely precise goals). Mandatory first revision before exit option appears.
+
+### Paper vs Code Discrepancies to Resolve
+
+The paper.tex has several items that don't match the current implementation:
+
+- **Abstract says N=400** — needs updating to N=128
+- **Abstract mentions NGSE** — we use single-item self-efficacy, not the 8-item NGSE scale
+- **Abstract mentions 1-week follow-up** — omitted from this study
+- **Coach perception section says 5-point Likert agree/disagree** — code uses 1-7 direct questions
+- **Participants section says "master's degree or currently enrolled in master's/doctoral"** — we also accept bachelor's completers
+- **Pilot study section** is a TODO placeholder
+- **Results/Discussion/Conclusion** are all TODO placeholders
+- **Prolific completion code** is set to `CGYZ74XJ` in CompletePage.tsx
 
 ## Study Design
 
@@ -16,23 +51,87 @@ Full design doc: `/Users/simohosio/Documents/Academic/Papers/Launchpad/docs/stud
 
 - **Factor A:** A1 (No AI) vs A2 (AI Coach with SMART refinement loop)
 - **Factor B:** B1 (No Anchoring) vs B2 (Energy priming + pleasure/pain visioning)
-- **N = 200** (50 per cell), recruited via Prolific (single study, server-side randomization)
-- **Population:** Master's/doctorate students and graduates (broadened from early-career academics)
-- **Session:** ~15-25 min single session + separate 1-week follow-up study
+- **N = 128** (32 per cell), recruited via Prolific (single study, server-side randomization)
+- **Population:** Graduate-educated adults (bachelor's completed and above)
+- **Session:** ~10-16 min single session, no follow-up
 - **Measures:** All custom items on 1-7 scales (except KGC which is validated at 1-5)
-  - Goal self-efficacy (single item, 1-7, three time points)
-  - KGC (goal commitment, 5 items, 1-5, three time points)
-  - Energy (1-7), goal clarity (1-7), readiness (1-7) — post only
-  - Process experience: helpfulness (1-7), frustration (1-7)
+  - Goal self-efficacy (single item, 1-7, pre/post)
+  - KGC goal commitment (5 items, 1-5, pre/post) — Klein et al. 2001, items 1,2,4 reverse-coded
+  - Energy (1-7, pre/post)
+  - Goal clarity (1-7, post only)
+  - Readiness (1-7, post only)
+  - Process helpfulness (1-7, post only)
+  - Process frustration (1-7, post only)
   - Coach perception (A2 only): 3 direct 1-7 questions + 1 open-ended
   - Refinement process data (A2 only): per-round goal text, AI ratings, flagged dimensions, timestamps
-  - Goal recall (two-step numeric, follow-up only)
+
+## Significant Findings at N=128
+
+### Factor A — AI Coaching:
+- **Frustration:** F=19.10, p<.0001, d=0.77, η²=.13 (A2: 3.30 vs A1: 2.00)
+- **Final word count:** F=25.67, p<.0001, d=0.90, η²=.17 (A2: 95 vs A1: 51 words)
+- **Session duration:** F=15.14, p=.0002, d=0.78 (A2: 16 min vs A1: 10.5 min)
+- **A2 word count doubles within-person:** 51→95, Wilcoxon p<.0001
+- **All 5 SMART dimensions improve R1→R2** (all p<.015, n=61 paired)
+- **Text features:** dates 40%→87% (χ²=28.8, p<.0001), numbers 69%→95% (χ²=13.0, p=.0003), deadline words 45%→86% (χ²=21.9, p<.0001)
+- Self-efficacy: NULL (d=-0.13)
+
+### Factor B — Anchoring:
+- **Goal clarity:** F=6.34, p=.013, d=0.45 (B2: 6.34 vs B1: 5.92)
+- **KGC commitment change:** F=5.05, p=.026, d=0.39 (B2: Δ=0.21 vs B1: Δ=0.06)
+- **Energy change:** F=7.50, p=.007, d=0.48
+- **Process helpfulness:** F=6.57, p=.012, d=0.45
+- **Readiness:** F=3.90, p=.050, d=0.35 (marginal)
+- **Priming manipulation check:** 5.09→5.63, Wilcoxon p<.0001
+- Self-efficacy: NULL (d=0.11)
+
+### Interaction:
+- **KGC delta:** F=5.35, p=.022. AI alone flatlines commitment (Δ=0.00); AI+anchoring produces largest gain (Δ=0.31)
+
+### Process Data (A2 only, n=63):
+- Mean 5.7 rounds, median 5, max 24
+- 52.5% dimension-specific compliance (targeted the flagged dimension)
+- Exit reasons: 74% satisfied, 18% enough_time, 9% not_helpful
+- Coach perception: useful 4.92/7, demanding 3.64/7, reuse 4.36/7
+
+### Paper Narrative:
+AI coaching and emotional anchoring target completely different mechanisms. AI coaching transforms goal *artifacts* (longer, more specific, dated, measurable) but increases frustration without improving psychological readiness. Anchoring transforms *psychological state* (clarity, commitment, energy, perceived helpfulness) without changing the goal text. The combination produces both better goals and better psychological readiness. Self-efficacy is null everywhere — a 10-minute intervention doesn't move self-reported confidence.
+
+### Scale Reliability:
+- KGC Cronbach's α: pre=.704, post=.712 (acceptable, ≥.70)
+
+### Normality:
+- Violated on all DVs (Shapiro-Wilk). Mann-Whitney U robustness checks confirm all ANOVA results.
+
+### Randomization:
+- Clean — no pre-measure differences on any variable.
+
+## Analysis
+
+Jupyter notebooks in `analysis/` (gitignored — not in public repo):
+- `01_data_loading.ipynb` — Load SQLite, parse JSON, compute KGC composites, build clean analysis dataframe, demographics, descriptives. Saves `data/analysis_clean.csv`.
+- `02_inferential.ipynb` — Cronbach's alpha, normality checks, randomization checks, 2x2 ANOVAs on all DVs, ANCOVAs controlling for baseline, Mann-Whitney robustness checks, word count analysis, summary table for paper.
+- `03_process_and_linguistic.ipynb` — Refinement round distribution, quality trajectory (R1→R2 with Wilcoxon + effect sizes), dimension-specific compliance, exit reasons, word count comparisons, chi-square on text features, LIWC export/import workflow, priming manipulation check, coach perception.
+
+### LIWC Integration
+Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring visions, tagged by condition and text type). Run through LIWC-22 externally, save output as `data/liwc_results.csv`, then the notebook imports and analyzes. Not yet done — need LIWC license.
+
+### Data Issues
+- PID 122: duplicate pre/post/goal records (page refresh). Handled by taking last per participant.
+- PID 134: 1 refinement round despite mandatory revision — likely bypassed via race condition. Excluded from R1→R2 paired comparison.
+- PID 138: 1 round, legitimately all-strong on first evaluation. Working as designed.
+
+## Paper Plans
+
+**Paper 1 (this study):** 2×2 factorial, beneficial friction concept. CHI/CSCW target. The quantitative story is the dissociation between cognitive (AI) and affective (anchoring) scaffolding. The qualitative story is the over-coaching problem and design implications for calibrating AI friction.
+
+**Paper 2 (planned):** Iterative redesign of the AI coach based on Paper 1's qualitative findings. Lighter-touch coaching, possibly with Haiku for speed, better sense of "good enough." Could include 2-3 design iterations tested in separate studies.
 
 ## Tech Stack
 
 - **Frontend:** Vite + React 18 + TypeScript + Tailwind CSS + SurveyJS
 - **Backend:** Express + better-sqlite3 + dotenv
-- **AI:** OpenRouter -> Claude Sonnet (temperature 0.3 for coaching)
+- **AI:** OpenRouter -> Claude Sonnet 4.6 (temperature 0.3 for coaching)
 - **Deploy:** Railway + Docker, persistent volume for SQLite at `/app/data`
 - **Package manager:** bun
 
@@ -68,7 +167,7 @@ Pre-measure (self-efficacy + KGC + energy) comes after the goal readiness gate s
 
 ### AI Coaching Loop (A2 conditions only)
 
-`AiRefinementLoop` sends the goal text to `/api/ai/goal-coach`, which proxies to OpenRouter with the SMART coaching prompt from `server/ai-prompts.ts`. The AI returns structured JSON with per-dimension ratings (specific, measurable, achievable, relevant, timeBound) as strong/adequate/weak and Socratic coaching feedback. **First revision is mandatory** — participants must revise at least once before the exit option appears. From round 2 onward, they can exit freely. Every round is logged to `refinement_rounds`. If a participant exits before reaching "strong" overall, an `ExitReasonModal` captures why.
+`AiRefinementLoop` sends the goal text to `/api/ai/goal-coach`, which proxies to OpenRouter with the SMART coaching prompt from `server/ai-prompts.ts`. The AI returns structured JSON with per-dimension ratings (specific, measurable, achievable, relevant, timeBound) as strong/adequate/weak and Socratic coaching feedback. **First revision is mandatory** — participants must revise at least once before the exit option appears (exception: if all-strong on first evaluation, exit is immediate). From round 2 onward, they can exit freely. Every round is logged to `refinement_rounds`. If a participant exits before reaching "strong" overall, an `ExitReasonModal` captures why.
 
 ### URL Param Obfuscation
 
@@ -95,12 +194,13 @@ Build command compiles both: `vite build && tsc -p tsconfig.server.json`.
 
 - `/study` — Main session (server auto-assigns condition)
 - `/study?v=xR7qL` — Main session with manual condition override
-- `/followup?PROLIFIC_PID=xxx` — 1-week follow-up (separate Prolific study)
-- `/complete` — Thank you + Prolific redirect
+- `/followup?PROLIFIC_PID=xxx` — 1-week follow-up (built but not used in this study)
+- `/complete` — Thank you + Prolific redirect (code: CGYZ74XJ)
 - `/test` — Dev dashboard with condition links, follow-up launcher, admin tools
 - `/api/health` — Health check
 - `/api/admin/dash?password=xxx` — Data dashboard with charts and analysis variables
 - `/api/admin/export?password=xxx` — Full data export (JSON)
+- `/api/admin/download-db?password=xxx` — Download SQLite database file
 - `/api/admin/stats?password=xxx` — Completion stats by condition
 - `/api/admin/reset?password=xxx` — DELETE all data (POST, requires confirmation)
 
@@ -117,10 +217,11 @@ https://launchpad-study-production.up.railway.app/api/admin/download-db?password
 
 ### Data Access
 
-- **Download production DB locally:** `curl -o data/production-study.db "https://launchpad-study-production.up.railway.app/api/admin/download-db?password=launchpad-admin-2026"`
+- **Download production DB locally:** `curl -o data/study.db "https://launchpad-study-production.up.railway.app/api/admin/download-db?password=launchpad-admin-2026"`
 - **Download JSON export:** `curl -o data/production-export.json "https://launchpad-study-production.up.railway.app/api/admin/export?password=launchpad-admin-2026"`
 - **Seed local DB with synthetic data:** `npx tsx server/seed-synthetic.ts`
 - Production DB is SQLite at `/app/data/study.db` on Railway (persistent volume)
+- For analysis: download DB to `data/study.db`, run notebooks in order (01 → 02 → 03)
 
 ### Local Dev Testing URLs
 
@@ -156,9 +257,11 @@ Railway project "adorable-flexibility", service "launchpad-study". Docker two-st
 ## Prolific Integration
 
 - **Single Prolific study** with server-side randomization — no need for separate studies per cell
-- Prolific URL: `https://launchpad-study-production.up.railway.app/study` (Prolific appends `PROLIFIC_PID`, `STUDY_ID`, `SESSION_ID` automatically)
-- Follow-up is a separate Prolific study, matched by `PROLIFIC_PID`
-- `CompletePage.tsx` has a `STUDY_COMPLETION_CODE` placeholder — replace with actual Prolific code before launch
+- Prolific URL: `https://launchpad-study-production.up.railway.app/study?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}`
+- Completion code: `CGYZ74XJ`
+- Screeners: English primary language, 95-100% approval, 200+ submissions, UK/US/IE/AU/CA/NZ
+- Education filter: undergraduate degree and above
+- Follow-up is a separate Prolific study (not used in this study)
 
 ## GitHub
 

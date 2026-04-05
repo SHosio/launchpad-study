@@ -104,8 +104,8 @@ function sessionMinutes(start: string | null, end: string | null): number | null
   return ms / 60000
 }
 
-function wordCount(text: string | null): number {
-  if (!text) return 0
+function wordCount(text: unknown): number {
+  if (!text || typeof text !== 'string') return 0
   return text.trim().split(/\s+/).filter(w => w.length > 0).length
 }
 
@@ -125,9 +125,11 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   const preSurveys = new Map<number, Record<string, unknown>>()
   const postSurveys = new Map<number, Record<string, unknown>>()
   for (const s of surveys) {
-    const data = JSON.parse(s.responses_json)
-    if (s.survey_type === 'pre_measure') preSurveys.set(s.participant_id, data)
-    if (s.survey_type === 'post_measure') postSurveys.set(s.participant_id, data)
+    try {
+      const data = JSON.parse(s.responses_json)
+      if (s.survey_type === 'pre_measure') preSurveys.set(s.participant_id, data)
+      if (s.survey_type === 'post_measure') postSurveys.set(s.participant_id, data)
+    } catch { /* skip malformed survey records */ }
   }
 
   // Group goals by participant (take last)
@@ -313,6 +315,59 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
 </head><body>
 <h1>Study Dashboard</h1>
 <p class="subtitle">Beneficial Friction Study 1 — ${participants.length} participants, ${participants.filter(p => p.status === 'completed').length} completed — ${new Date().toISOString().slice(0, 16)}</p>`
+
+  // --- Demographics ---
+  const completedParticipants = participants.filter(p => p.status === 'completed')
+  const demographics: Record<string, unknown>[] = []
+  for (const p of completedParticipants) {
+    try {
+      if (p.demographics_json) demographics.push(JSON.parse(p.demographics_json))
+    } catch {}
+  }
+  if (demographics.length > 0) {
+    const ages = demographics.map(d => Number(d.age)).filter(a => !isNaN(a))
+    const genders: Record<string, number> = {}
+    const education: Record<string, number> = {}
+    const priorGoalSetting: Record<string, number> = {}
+    for (const d of demographics) {
+      const g = String(d.gender || 'unknown')
+      genders[g] = (genders[g] || 0) + 1
+      const e = String(d.education_level || d.career_stage || 'unknown')
+      education[e] = (education[e] || 0) + 1
+      const p = String(d.prior_goal_setting || 'unknown')
+      priorGoalSetting[p] = (priorGoalSetting[p] || 0) + 1
+    }
+
+    html += `<h2>Demographics (n=${demographics.length})</h2>`
+    html += `<div class="grid2">`
+
+    html += `<div><table><thead><tr><th colspan="2">Age</th></tr></thead><tbody>`
+    html += `<tr><td class="label">Mean (SD)</td><td class="num">${fmt(mean(ages))} ±${fmt(sd(ages))}</td></tr>`
+    html += `<tr><td class="label">Range</td><td class="num">${Math.min(...ages)}–${Math.max(...ages)}</td></tr>`
+    html += `</tbody></table></div>`
+
+    html += `<div><table><thead><tr><th>Gender</th><th>n</th></tr></thead><tbody>`
+    for (const [g, n] of Object.entries(genders).sort((a, b) => b[1] - a[1])) {
+      html += `<tr><td class="label">${escapeHtml(g)}</td><td class="num">${n}</td></tr>`
+    }
+    html += `</tbody></table></div>`
+
+    html += `</div><div class="grid2" style="margin-top:0.5rem;">`
+
+    html += `<div><table><thead><tr><th>Education Level</th><th>n</th></tr></thead><tbody>`
+    for (const [e, n] of Object.entries(education).sort((a, b) => b[1] - a[1])) {
+      html += `<tr><td class="label">${escapeHtml(e)}</td><td class="num">${n}</td></tr>`
+    }
+    html += `</tbody></table></div>`
+
+    html += `<div><table><thead><tr><th>Prior Goal-Setting Experience</th><th>n</th></tr></thead><tbody>`
+    for (const [p, n] of Object.entries(priorGoalSetting).sort((a, b) => b[1] - a[1])) {
+      html += `<tr><td class="label">${escapeHtml(p)}</td><td class="num">${n}</td></tr>`
+    }
+    html += `</tbody></table></div>`
+
+    html += `</div>`
+  }
 
   // --- Recruitment ---
   html += `<h2>Recruitment Progress</h2><table><thead><tr><th>Cell</th><th>Total</th><th>Completed</th><th>Rate</th><th>Dropout by Step</th></tr></thead><tbody>`
@@ -531,9 +586,9 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     // Coach perception
     if (coachPerception.useful.length > 0) {
       html += `<h2>Coach Perception (A2, 1-7)</h2><table><thead><tr><th>Item</th><th>Mean ± SD</th><th>n</th></tr></thead><tbody>`
-      html += `<tr><td class="label">AI feedback helped improve my goal</td><td class="num">${fmt(mean(coachPerception.useful))} ±${fmt(sd(coachPerception.useful))}</td><td class="num">${coachPerception.useful.length}</td></tr>`
-      html += `<tr><td class="label">AI feedback was too demanding (R)</td><td class="num">${fmt(mean(coachPerception.demanding))} ±${fmt(sd(coachPerception.demanding))}</td><td class="num">${coachPerception.demanding.length}</td></tr>`
-      html += `<tr><td class="label">Would use this tool again</td><td class="num">${fmt(mean(coachPerception.reuse))} ±${fmt(sd(coachPerception.reuse))}</td><td class="num">${coachPerception.reuse.length}</td></tr>`
+      html += `<tr><td class="label">How much did the AI feedback help you improve your goal?</td><td class="num">${fmt(mean(coachPerception.useful))} ±${fmt(sd(coachPerception.useful))}</td><td class="num">${coachPerception.useful.length}</td></tr>`
+      html += `<tr><td class="label">How demanding or unreasonable was the AI feedback?</td><td class="num">${fmt(mean(coachPerception.demanding))} ±${fmt(sd(coachPerception.demanding))}</td><td class="num">${coachPerception.demanding.length}</td></tr>`
+      html += `<tr><td class="label">How likely would you be to use this tool again?</td><td class="num">${fmt(mean(coachPerception.reuse))} ±${fmt(sd(coachPerception.reuse))}</td><td class="num">${coachPerception.reuse.length}</td></tr>`
       html += `</tbody></table>`
     }
   } else {
