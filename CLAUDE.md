@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Self-reminder: Update this file after any key changes to flow, measures, routes, or architecture.**
+**CRITICAL: Update this file IMMEDIATELY when any feature is built, changed, or removed. Do NOT end a session with stale documentation. This includes: new routes, new pages, status changes (e.g. "omitted" → "built"), architecture changes, new tables, new endpoints, deployment state. Check this file before wrapping up.**
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -22,7 +22,7 @@ Standalone research instrument for Study 1: "Beneficial Friction: How AI Coachin
 
 2. **1-week follow-up omitted.** Self-efficacy was null at two time points; a third null measurement adds no value. Follow-up saved for Paper 2 (iterative AI coach redesign).
 
-3. **Human goal quality rating system built.** Batched Prolific rating task implemented (`server/routes/rating.ts`). 1-5 rubric, batches of 8 goals, 5 raters per batch, supports both initial and final goal versions. **Not yet deployed or run** — needs: push to Railway, seed batches on production, create Prolific study for raters. AI telemetry (SMART dimension ratings R1→R2) and text features serve as objective quality proxies in the meantime.
+3. **Human goal quality rating system built and seeded on production.** Batched Prolific rating task (`server/routes/rating.ts`). 1-5 SMART rubric + holistic, batches of 8 goals, 5 raters per batch. Initial (A2 only) and final goals mixed in same batches — constraint ensures no rater sees both versions from the same participant. **Seeded:** 191 goals (128 final + 63 initial), 24 batches, 120 rater slots. **Remaining:** create Prolific study for raters, completion code `RATE_COMPLETE_2026`.
 
 4. **Power analysis revised.** Original design doc said N=200 (50/cell), paper draft had N=400 (100/cell). Final: N=128 (32/cell) based on G*Power for medium effect f=0.25. Justified as minimum practically meaningful threshold for design implications.
 
