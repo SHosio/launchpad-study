@@ -6,3 +6,6 @@ data/*.db-wal
 data/*.db-shm
 docs/
 .env
+analysis/*.ipynb
+data/*.csv
+data/*.json

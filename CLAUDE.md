@@ -22,7 +22,7 @@ Standalone research instrument for Study 1: "Beneficial Friction: How AI Coachin
 
 2. **1-week follow-up omitted.** Self-efficacy was null at two time points; a third null measurement adds no value. Follow-up saved for Paper 2 (iterative AI coach redesign).
 
-3. **Human goal quality rating omitted for now.** Was in the design doc (Prolific raters, 1-5 rubric) but not yet conducted. The AI telemetry data (SMART dimension ratings R1→R2) and text features (dates, numbers, deadline words) serve as objective quality proxies. Human rating can be done later if needed.
+3. **Human goal quality rating system built.** Batched Prolific rating task implemented (`server/routes/rating.ts`). 1-5 rubric, batches of 8 goals, 5 raters per batch, supports both initial and final goal versions. **Not yet deployed or run** — needs: push to Railway, seed batches on production, create Prolific study for raters. AI telemetry (SMART dimension ratings R1→R2) and text features serve as objective quality proxies in the meantime.
 
 4. **Power analysis revised.** Original design doc said N=200 (50/cell), paper draft had N=400 (100/cell). Final: N=128 (32/cell) based on G*Power for medium effect f=0.25. Justified as minimum practically meaningful threshold for design implications.
 
@@ -203,6 +203,9 @@ Build command compiles both: `vite build && tsc -p tsconfig.server.json`.
 - `/api/admin/download-db?password=xxx` — Download SQLite database file
 - `/api/admin/stats?password=xxx` — Completion stats by condition
 - `/api/admin/reset?password=xxx` — DELETE all data (POST, requires confirmation)
+- `/api/rating/seed?password=xxx` — POST: seed rating batches from completed goals (initial/final versions)
+- `/api/rating/batch?PROLIFIC_PID=xxx` — GET: get next unrated batch for a rater
+- `/api/rating/submit` — POST: submit ratings for a batch
 
 ### Production URLs
 
@@ -216,6 +219,8 @@ https://launchpad-study-production.up.railway.app/api/admin/download-db?password
 ```
 
 ### Data Access
+
+**CRITICAL: NEVER delete, overwrite, or modify any files in `data/`. This folder contains production study data and backups. Backup: `data/study-backup-20260405.db`.**
 
 - **Download production DB locally:** `curl -o data/study.db "https://launchpad-study-production.up.railway.app/api/admin/download-db?password=launchpad-admin-2026"`
 - **Download JSON export:** `curl -o data/production-export.json "https://launchpad-study-production.up.railway.app/api/admin/export?password=launchpad-admin-2026"`
@@ -246,7 +251,7 @@ DATABASE_PATH=./data/study.db
 
 ## Database
 
-SQLite via better-sqlite3. Tables: `participants`, `survey_responses`, `goals`, `refinement_rounds`, `anchoring`, `followup_responses`. Schema in `server/db.ts`.
+SQLite via better-sqlite3. Tables: `participants`, `survey_responses`, `goals`, `refinement_rounds`, `anchoring`, `followup_responses`, `rating_batches`, `rating_batch_goals`, `rating_responses`. Schema in `server/db.ts`.
 
 **Critical:** The `refinement_rounds` table logs every AI coaching iteration — goal text, AI feedback, dimension ratings (strong/adequate/weak), flagged dimension, timestamps. This is the primary process data for the paper.
 
