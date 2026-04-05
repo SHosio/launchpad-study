@@ -222,27 +222,14 @@ export default function TestPage() {
               onClick={async () => {
                 if (!adminPassword) return
                 try {
-                  const res = await fetch(`/api/rating/seed?password=${encodeURIComponent(adminPassword)}&version=final`, { method: 'POST' })
+                  const res = await fetch(`/api/rating/seed?password=${encodeURIComponent(adminPassword)}`, { method: 'POST' })
                   const data = await res.json()
                   setResetStatus(res.ok ? `Seeded: ${JSON.stringify(data)}` : `Error: ${data.error}`)
                 } catch (err) { setResetStatus(`Error: ${err}`) }
               }}
               className="rounded-lg bg-blue-600 text-white px-4 py-2 text-sm font-medium hover:bg-blue-700 transition-colors"
             >
-              Seed Final Goal Batches
-            </button>
-            <button
-              onClick={async () => {
-                if (!adminPassword) return
-                try {
-                  const res = await fetch(`/api/rating/seed?password=${encodeURIComponent(adminPassword)}&version=initial`, { method: 'POST' })
-                  const data = await res.json()
-                  setResetStatus(res.ok ? `Seeded: ${JSON.stringify(data)}` : `Error: ${data.error}`)
-                } catch (err) { setResetStatus(`Error: ${err}`) }
-              }}
-              className="rounded-lg bg-blue-500 text-white px-4 py-2 text-sm font-medium hover:bg-blue-600 transition-colors"
-            >
-              Seed Initial Goal Batches (A2)
+              Seed Combined Batches (Initial + Final)
             </button>
             <a
               href={adminPassword ? `/api/rating/status?password=${encodeURIComponent(adminPassword)}` : undefined}
