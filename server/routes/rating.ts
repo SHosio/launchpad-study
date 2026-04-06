@@ -124,11 +124,12 @@ router.get('/', (req: Request, res: Response) => {
   if (existingRater) {
     batchNumber = existingRater.batch_number
   } else {
-    // Find batch with fewest raters, under the cap
+    // Find batch with fewest active raters (completed + started within 30 min), under the cap
     const batchCounts = db.prepare(`
       SELECT b.batch_number, COUNT(r.id) as rater_count
       FROM (SELECT DISTINCT batch_number FROM rating_batches) b
       LEFT JOIN rating_raters r ON r.batch_number = b.batch_number
+        AND (r.completed = 1 OR r.created_at > datetime('now', '-39 minutes'))
       GROUP BY b.batch_number
       HAVING rater_count < ?
       ORDER BY rater_count ASC, b.batch_number ASC
