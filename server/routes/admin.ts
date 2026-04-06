@@ -75,7 +75,7 @@ router.get('/download-db', requireAdmin, (_req: Request, res: Response) => {
   // Use the actual path from the open db instance to avoid path resolution mismatches
   const dbFilePath = (db as any).name as string
   // Checkpoint WAL to ensure all data is in the main file before download
-  db.pragma('wal_checkpoint(FULL)')
+  db.pragma('wal_checkpoint(TRUNCATE)')
   res.download(dbFilePath, 'study.db', (err) => {
     if (err && !res.headersSent) res.status(500).json({ error: 'Failed to download database' })
   })
