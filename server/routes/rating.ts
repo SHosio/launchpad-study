@@ -241,12 +241,13 @@ function errorPage(message: string): string {
 }
 
 function thankYouPage(): string {
-  const completionCode = 'RATE_COMPLETE_2026'
+  const completionCode = 'C1A39M6O'
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Thank You</title>
 <style>body{font-family:-apple-system,sans-serif;max-width:600px;margin:2rem auto;padding:0 1rem;color:#18181b;text-align:center;}
 h1{font-size:1.5rem;margin-top:3rem;}a{display:inline-block;margin-top:1rem;padding:0.75rem 2rem;background:#f97316;color:white;border-radius:0.5rem;text-decoration:none;font-weight:600;}</style>
 </head><body><h1>Thank You!</h1><p>Your ratings have been recorded.</p>
 <a href="https://app.prolific.com/submissions/complete?cc=${completionCode}">Return to Prolific</a>
+<p style="margin-top:1.5rem;font-size:0.8rem;color:#71717a;">Completion code: <strong style="color:#18181b;">${completionCode}</strong></p>
 </body></html>`
 }
 
@@ -281,7 +282,7 @@ function ratingPage(goals: any[], prolificPid: string, batchNumber: number): str
   .progress { font-size: 0.8rem; color: #71717a; margin-bottom: 1rem; }
   .nav { display: flex; gap: 0.75rem; margin-top: 1rem; }
   .nav button { padding: 0.6rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; transition: all 0.15s; }
-  .btn-next { background: #f97316; color: white; }
+  .btn-next { background: #f97316; color: white; padding: 0.6rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; border: none; }
   .btn-next:hover { background: #ea580c; }
   .btn-next:disabled { background: #d4d4d8; cursor: not-allowed; }
   .btn-back { background: #f4f4f5; color: #3f3f46; }
@@ -306,12 +307,12 @@ function ratingPage(goals: any[], prolificPid: string, batchNumber: number): str
     <div class="rubric">
       <table>
         <tr><th>Scale</th><th>1 (Weak)</th><th>3 (Adequate)</th><th>5 (Strong)</th></tr>
-        <tr><td><strong>Specific</strong></td><td>Vague, generic</td><td>Names an action but could be more precise</td><td>Precise, verifiable deliverable</td></tr>
-        <tr><td><strong>Measurable</strong></td><td>No way to tell when done</td><td>General completion state</td><td>Clear done/not-done criterion</td></tr>
-        <tr><td><strong>Achievable</strong></td><td>Too ambitious or trivially easy</td><td>Plausible but hard to judge</td><td>Clearly realistic stretch</td></tr>
-        <tr><td><strong>Relevant</strong></td><td>No personal connection</td><td>Implies relevance</td><td>Explicitly states why it matters</td></tr>
-        <tr><td><strong>Time-Bound</strong></td><td>No deadline</td><td>Vague timeframe</td><td>Specific date or deadline</td></tr>
-        <tr><td><strong>Overall</strong></td><td>Vague, unfocused</td><td>Clear action, reasonable timeframe</td><td>Precise, grounded commitment</td></tr>
+        <tr><td><strong>Specific</strong></td><td>Vague or generic — could mean anything</td><td>Names a reasonable action but could be sharper</td><td>Precise deliverable that someone else could verify</td></tr>
+        <tr><td><strong>Measurable</strong></td><td>No way to tell when it's done; vague verbs like "work on" or "improve"</td><td>Has a completion state but lacks a binary done/not-done criterion</td><td>Unmistakable completion state — you'd know exactly when it's finished</td></tr>
+        <tr><td><strong>Achievable</strong></td><td>Obviously too ambitious or trivially small for 4–5 weeks</td><td>Plausible but hard to judge</td><td>Realistic for 4–5 weeks (when in doubt, give benefit of the doubt)</td></tr>
+        <tr><td><strong>Relevant</strong></td><td>No connection to why this matters to the person</td><td>Implies relevance but doesn't say why it matters</td><td>Explicitly states why it matters — career, personal growth, or broader purpose</td></tr>
+        <tr><td><strong>Time-Bound</strong></td><td>No deadline or vague references like "by the end of this period"</td><td>Relative timeframe like "in 3 weeks" — directional but imprecise</td><td>Concrete date (e.g., "by April 20")</td></tr>
+        <tr><td><strong>Overall</strong></td><td>Genuinely vague, could mean anything</td><td>Intent is clear but articulation could be sharper or more grounded</td><td>Precise, unambiguous, well-articulated — leaves no room for interpretation</td></tr>
       </table>
     </div>
   </div>
@@ -326,13 +327,13 @@ function ratingPage(goals: any[], prolificPid: string, batchNumber: number): str
   <div class="goal-card" id="goal-${i}" data-goal-id="${g.goal_id}" data-goal-version="${g.goal_version}">
     <div class="goal-text">${escapeHtml(g.goal_text)}</div>
 
-    ${renderDimension(i, 'specific', 'Specific', 'Does it name a clear, precise deliverable?')}
-    ${renderDimension(i, 'measurable', 'Measurable', 'Can you tell exactly when it is done?')}
-    ${renderDimension(i, 'achievable', 'Achievable', 'Is it realistic for 4-5 weeks?')}
-    ${renderDimension(i, 'relevant', 'Relevant', 'Does it say why this matters to them?')}
-    ${renderDimension(i, 'timebound', 'Time-Bound', 'Is there a specific deadline?')}
+    ${renderDimension(i, 'specific', 'Specific', 'Does it name a precise deliverable someone else could verify?')}
+    ${renderDimension(i, 'measurable', 'Measurable', 'Is there a clear done/not-done criterion, or just vague verbs?')}
+    ${renderDimension(i, 'achievable', 'Achievable', 'Realistic for 4–5 weeks? When in doubt, give benefit of the doubt.')}
+    ${renderDimension(i, 'relevant', 'Relevant', 'Does it say WHY this matters to them — career, growth, purpose?')}
+    ${renderDimension(i, 'timebound', 'Time-Bound', 'Concrete date = strong, relative timeframe = adequate, nothing = weak.')}
     <hr>
-    ${renderDimension(i, 'holistic', 'Overall Quality', 'How good is this goal overall?')}
+    ${renderDimension(i, 'holistic', 'Overall Quality', 'Precise and unambiguous, or vague and could mean anything?')}
 
     <div class="nav">
       ${i > 0 ? '<button class="btn-back" onclick="showGoal(' + (i - 1) + ')">Back</button>' : ''}
