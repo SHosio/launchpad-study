@@ -11,6 +11,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': 'http://localhost:3001',
+      '/rate': 'http://localhost:3001',
     },
   },
 })

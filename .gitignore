@@ -9,3 +9,5 @@ docs/
 analysis/*.ipynb
 data/*.csv
 data/*.json
+Paper/
+.claude/

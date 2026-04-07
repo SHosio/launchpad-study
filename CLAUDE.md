@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Standalone research instrument for Study 1: "Beneficial Friction: How AI Coaching Improves Goal Articulation and Readiness in Graduate-Educated Adults." This is a 2x2 between-subjects experiment (AI Coach x Emotional Anchoring) deployed on Prolific.
 
-**Paper:** `/Users/simohosio/Documents/Academic/Papers/Launchpad/paper.tex` (ACM CHI format)
+**Paper:** `Paper/paper.tex` (ACM CHI format, synced with Overleaf via git)
 
 **This is NOT part of Edge Academia Portal.** It's an independent project with its own repo, deployment, and database.
 
@@ -91,11 +91,26 @@ Full design doc: `/Users/simohosio/Documents/Academic/Papers/Launchpad/docs/stud
 ### Process Data (A2 only, n=63):
 - Mean 5.7 rounds, median 5, max 24
 - 52.5% dimension-specific compliance (targeted the flagged dimension)
-- Exit reasons: 74% satisfied, 18% enough_time, 9% not_helpful
+- Exit reasons: 30 reached all-strong (48%, no exit prompt), 25 satisfied (40%), 6 enough_time (10%), 3 not_helpful (5%)
 - Coach perception: useful 4.92/7, demanding 3.64/7, reuse 4.36/7
 
+### Human-Rated Goal Quality (notebook 04):
+- **AI coaching main effect:** F=45.99, p<.0001, η²=.27, d=1.21 (A2: 4.20 vs A1: 3.39 on 1-5 SMART composite)
+- **Anchoring:** null (p=.54). No interaction.
+- **Within-person (A2):** All 5 SMART dimensions improve initial→final (all p<.01). Time-Bound largest (+0.83), Achievable smallest (+0.27).
+- **AI-human calibration:** Significant Spearman on Specific (ρ=.56), Time-Bound (.48), Measurable (.36), Achievable (.30), Relevant (.29). Overall: not significant (.23). AI is systematically stricter than humans.
+- **Rounds × quality:** ρ=.32, p=.01 (more rounds → better quality, modest)
+- **Inter-rater reliability:** Krippendorff's α = .24–.49 (low; rating on 1-5 is hard)
+
+### LIWC Findings (notebook 03):
+- **Authentic drops with AI coaching:** p=.023, d=-0.37 (structure-genuineness tradeoff)
+- **focusfuture increases:** p=.024, d=+0.35 (more future-oriented language)
+- **cause increases:** p=.002, d=+0.42 (more causal reasoning from explaining "why")
+- **Analytic, cogproc, achieve:** all null between conditions
+- **Vision manipulation check:** Tone 87 vs 49 (p<.0001), emo_pos 3.28 vs 0.76 (p<.0001), emo_neg 0.59 vs 2.81 (p=.0002). Anchoring exercise worked.
+
 ### Paper Narrative:
-AI coaching and emotional anchoring target completely different mechanisms. AI coaching transforms goal *artifacts* (longer, more specific, dated, measurable) but increases frustration without improving psychological readiness. Anchoring transforms *psychological state* (clarity, commitment, energy, perceived helpfulness) without changing the goal text. The combination produces both better goals and better psychological readiness. Self-efficacy is null everywhere — a 10-minute intervention doesn't move self-reported confidence.
+AI coaching and emotional anchoring target completely different mechanisms. AI coaching transforms goal *artifacts* (longer, more specific, dated, measurable) but increases frustration without improving psychological readiness. Anchoring transforms *psychological state* (clarity, commitment, energy, perceived helpfulness) without changing the goal text. The combination produces both better goals and better psychological readiness. Self-efficacy is null everywhere — a 10-minute intervention doesn't move self-reported confidence. Human ratings validate the AI telemetry with a very large effect (d=1.21). AI is well-calibrated on structural dimensions but over-rates difficulty on subjective ones, supporting lighter-touch coaching in Paper 2. LIWC shows coaching trades authenticity for structure. Only 5% of coached participants found feedback unhelpful; 48% persisted to all-strong — frustration is predominantly productive.
 
 ### Scale Reliability:
 - KGC Cronbach's α: pre=.704, post=.712 (acceptable, ≥.70)
@@ -108,13 +123,15 @@ AI coaching and emotional anchoring target completely different mechanisms. AI c
 
 ## Analysis
 
-Jupyter notebooks in `analysis/` (gitignored — not in public repo):
-- `01_data_loading.ipynb` — Load SQLite, parse JSON, compute KGC composites, build clean analysis dataframe, demographics, descriptives. Saves `data/analysis_clean.csv`.
-- `02_inferential.ipynb` — Cronbach's alpha, normality checks, randomization checks, 2x2 ANOVAs on all DVs, ANCOVAs controlling for baseline, Mann-Whitney robustness checks, word count analysis, summary table for paper.
-- `03_process_and_linguistic.ipynb` — Refinement round distribution, quality trajectory (R1→R2 with Wilcoxon + effect sizes), dimension-specific compliance, exit reasons, word count comparisons, chi-square on text features, LIWC export/import workflow, priming manipulation check, coach perception.
+Jupyter notebooks in `analysis/` (gitignored — not in public repo). **Run in VS Code with `notebook.output.textLineLimit` set high (e.g. 500) to see full results.** Run in order: 01 → 02 → 03 → 04.
+
+- `01_data_loading.ipynb` — Load SQLite, parse JSON, compute KGC composites, build clean analysis dataframe, demographics, descriptives. Saves `data/analysis_clean.csv` and `data/ratings_clean.csv`.
+- `02_inferential.ipynb` — **Main effects.** Cronbach's alpha, normality checks, randomization checks, 2x2 ANOVAs on all DVs (self-efficacy, KGC, energy, clarity, readiness, helpfulness, frustration), ANCOVAs controlling for baseline, Mann-Whitney robustness checks, word count analysis, summary table for paper.
+- `03_process_and_linguistic.ipynb` — **Process data + LIWC.** Refinement round distribution, quality trajectory (AI ratings R1→R2 with Wilcoxon), dimension-specific compliance, exit reasons (30 reached all-strong, 25 satisfied, 6 enough_time, 3 not_helpful), word count comparisons, chi-square on text features, priming manipulation check, coach perception, **LIWC-22 analysis** (4 analyses: A1 vs A2 goals, A2 initial→final, B1 vs B2 goals, pleasure vs pain visions). Key LIWC findings: Authentic drops with AI coaching (d=-0.37), focusfuture and cause increase; vision manipulation check is strong (Tone 87 vs 49, emo_pos/emo_neg both significant).
+- `04_human_ratings.ipynb` — **Independent human ratings.** Inter-rater reliability (Krippendorff's alpha), 2x2 ANOVA on human-rated goal quality (AI coaching: F=45.99, p<.0001, η²=.27, d=1.21; anchoring: null), within-person initial→final quality change (A2 only, all dims p<.01), AI vs human calibration (Spearman: Specific ρ=.56, Time-Bound ρ=.48; AI is systematically stricter), rounds × quality correlation (ρ=.32, p=.01), per-dimension ANOVAs.
 
 ### LIWC Integration
-Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring visions, tagged by condition and text type). Run through LIWC-22 externally, save output as `data/liwc_results.csv`, then the notebook imports and analyzes. Not yet done — need LIWC license.
+Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring visions, tagged by condition and text type). Run through LIWC-22 externally, save output as `data/liwc_processed.csv`, then notebook 03 imports and analyzes. Categories used: Analytic, Authentic, Tone, cogproc, achieve, focusfuture, certitude, tentat, need, want, fulfill, insight, cause, Affect, emo_pos, emo_neg, tone_pos, tone_neg, emotion.
 
 ### Data Issues
 - PID 122: duplicate pre/post/goal records (page refresh). Handled by taking last per participant.
@@ -126,6 +143,38 @@ Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring vision
 **Paper 1 (this study):** 2×2 factorial, beneficial friction concept. CHI/CSCW target. The quantitative story is the dissociation between cognitive (AI) and affective (anchoring) scaffolding. The qualitative story is the over-coaching problem and design implications for calibrating AI friction.
 
 **Paper 2 (planned):** Iterative redesign of the AI coach based on Paper 1's qualitative findings. Lighter-touch coaching, possibly with Haiku for speed, better sense of "good enough." Could include 2-3 design iterations tested in separate studies.
+
+## Paper (LaTeX / Overleaf)
+
+The paper lives in `Paper/` (gitignored from this repo, has its own git tracking for Overleaf sync).
+
+### Key Paper Files
+- `Paper/paper.tex` — Main paper source (`\documentclass[manuscript,review,anonymous]{acmart}`)
+- `Paper/references.bib` — Bibliography
+- `Paper/docs/study1_design.md` — Full study design for Study 1
+- `Paper/docs/study2_design.md` — Study 2 design (future paper)
+- `Paper/context/` — Reference papers as markdown + LIWC-22 manual
+- `Paper/context/CONTEXT_MAP.md` — Structured knowledge base of all cited references
+
+### Paper Build
+```bash
+cd Paper && pdflatex paper.tex && bibtex paper && pdflatex paper.tex && pdflatex paper.tex
+texcount Paper/paper.tex
+```
+
+### Paper Writing Style
+- Target venue: **ACM CHI** (HCI community). Write for HCI researchers, not psychologists or CS theorists.
+- **NEVER use em-dashes (---)** in paper text. No exceptions.
+- **Avoid semicolons.** Use commas, colons, parentheses, or split into two sentences.
+- Prefer simple, clear sentence structures.
+
+### Overleaf Sync
+Syncs via git. Do not force-push or rewrite history in the Paper/ folder. Only .tex and .bib files are committed to Overleaf. The `docs/`, `CLAUDE.md`, `.claude/`, and `context/` folders inside Paper/ are gitignored from Overleaf.
+
+### Document Class Options
+- **Camera-ready:** `\documentclass[sigconf]{acmart}`
+- **Submission review:** `\documentclass[manuscript,review,anonymous]{acmart}` (current)
+- **Author draft:** `\documentclass[sigconf,authordraft]{acmart}`
 
 ## Tech Stack
 

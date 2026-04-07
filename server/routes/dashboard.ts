@@ -676,7 +676,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
         FROM goal_ratings GROUP BY batch_number
       `).all() as any[]
       const completedBatches = ratingStatus.filter(b => b.raters >= 5).length
-      const totalBatches = db.prepare('SELECT COUNT(DISTINCT batch_number) as c FROM rating_batches WHERE goal_version = "final"').get() as any
+      const totalBatches = db.prepare("SELECT COUNT(DISTINCT batch_number) as c FROM rating_batches WHERE goal_version = 'final'").get() as any
       html += `<p style="font-size:0.75rem;color:#71717a;margin-top:0.5rem;">Rating progress: ${completedBatches}/${totalBatches?.c || '?'} batches complete (5 raters each). ${finalRatings.length} goals rated.</p>`
     }
   }
