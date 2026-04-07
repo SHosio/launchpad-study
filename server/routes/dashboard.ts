@@ -310,11 +310,28 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   .chart-box { background: #f9fafb; border: 1px solid #e4e4e7; border-radius: 0.5rem; padding: 1rem; }
   .chart-box h3 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: #3f3f46; }
   canvas { max-height: 280px; }
+  .scroll-box { max-height: 360px; overflow-y: auto; border: 1px solid #e4e4e7; border-radius: 0.4rem; margin-bottom: 1rem; }
+  .scroll-box table { margin-bottom: 0; }
+  .scroll-box thead th { position: sticky; top: 0; z-index: 1; }
+  .intro { background: #f9fafb; border: 1px solid #e4e4e7; border-radius: 0.5rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.85rem; line-height: 1.55; }
+  .intro h3 { font-size: 0.85rem; font-weight: 700; margin: 0.75rem 0 0.25rem; color: #18181b; }
+  .intro h3:first-child { margin-top: 0; }
+  .intro p { margin-bottom: 0.5rem; }
+  .intro strong { color: #18181b; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 </head><body>
 <h1>Study Dashboard</h1>
-<p class="subtitle">Beneficial Friction Study 1 — ${participants.length} participants, ${participants.filter(p => p.status === 'completed').length} completed — ${new Date().toISOString().slice(0, 16)}</p>`
+<p class="subtitle">Beneficial Friction Study 1 — ${participants.length} participants, ${participants.filter(p => p.status === 'completed').length} completed — ${new Date().toISOString().slice(0, 16)}</p>
+<div class="intro">
+  <h3>Study Design</h3>
+  <p>2×2 between-subjects experiment on Prolific testing whether AI coaching and emotional anchoring improve goal articulation and readiness in graduate-educated adults. <strong>Factor A:</strong> AI Coach (A1 no AI vs A2 AI Coach with SMART refinement loop). <strong>Factor B:</strong> Emotional Anchoring (B1 none vs B2 energy priming + pleasure/pain visioning). Single ~10–16 min session, target N=128 (32 per cell). Custom 1–7 measures of self-efficacy, goal clarity, readiness, helpfulness, frustration, plus the validated KGC commitment scale (1–5). A2 also logs every refinement round and AI dimension rating.</p>
+  <h3>Story so far (data collection essentially complete, n≈128)</h3>
+  <p><strong>AI coaching transforms the goal artifact, not the psychological state.</strong> A2 goals are dramatically longer (95 vs 51 words, d=0.90), more dated, more measurable, and rated much higher by independent human raters (d=1.21 on a 1–5 SMART composite). All five SMART dimensions improve initial→final within A2. But AI coaching also raises frustration (d=0.77) and does not move self-efficacy.</p>
+  <p><strong>Emotional anchoring transforms the psychological state, not the artifact.</strong> B2 produces higher goal clarity (d=0.45), KGC commitment change (d=0.39), energy change (d=0.48), helpfulness (d=0.45), and marginally readiness (d=0.35). Goal text length and human-rated quality are unchanged.</p>
+  <p><strong>Interaction:</strong> AI alone flatlines commitment (Δ≈0); AI+anchoring produces the largest commitment gain (F=5.35, p=.022). Self-efficacy is null everywhere — a 10-minute intervention does not move self-reported confidence. AI ratings are well-calibrated to humans on structural dimensions (Specific ρ=.56) but systematically stricter overall, motivating a lighter-touch redesign for Paper 2. Only 5% of coached participants found feedback unhelpful and 48% persisted to all-strong, so frustration here is predominantly productive.</p>
+  <p style="font-size:0.75rem;color:#71717a;margin-top:0.75rem;margin-bottom:0;"><em>Numbers in this dashboard update live as participants come in; the narrative above is current as of the late-stage data collection snapshot.</em></p>
+</div>`
 
   // --- Demographics ---
   const completedParticipants = participants.filter(p => p.status === 'completed')
@@ -374,7 +391,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   for (const r of recruitmentRows) {
     const rate = r.total > 0 ? Math.round(r.completed / r.total * 100) : 0
     const dropoutSteps = Object.entries(r.statusCounts).filter(([s, c]) => s !== 'completed' && c > 0).map(([s, c]) => `${s}:${c}`).join(', ')
-    html += `<tr><td class="label">${cellLabel(r.a, r.b)} <span class="sd">${r.a}×${r.b}</span></td><td class="num">${r.total}/50</td><td class="num">${r.completed}</td><td class="num">${rate}%</td><td>${dropoutSteps || '—'}</td></tr>`
+    html += `<tr><td class="label">${cellLabel(r.a, r.b)} <span class="sd">${r.a}×${r.b}</span></td><td class="num">${r.total}/32</td><td class="num">${r.completed}</td><td class="num">${rate}%</td><td>${dropoutSteps || '—'}</td></tr>`
   }
   html += `</tbody></table>`
 
@@ -682,7 +699,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   }
 
   // --- Goal Texts ---
-  html += `<h2>Goal Texts</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Initial Goal</th><th>Words</th><th>Final Goal</th><th>Words</th><th>Rounds</th></tr></thead><tbody>`
+  html += `<h2>Goal Texts</h2><div class="scroll-box"><table><thead><tr><th>PID</th><th>Cell</th><th>Initial Goal</th><th>Words</th><th>Final Goal</th><th>Words</th><th>Rounds</th></tr></thead><tbody>`
   for (const g of allGoalTexts) {
     html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(g.pid.slice(0, 20))}</td>`
     html += `<td><span class="pill pill-gray">${g.condA}×${g.condB}</span></td>`
@@ -692,7 +709,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     html += `<td class="num">${g.wc_final}</td>`
     html += `<td class="num">${g.rounds}</td></tr>`
   }
-  html += `</tbody></table>`
+  html += `</tbody></table></div>`
 
   // --- Open-Ended: Coach Experience (A2 only) ---
   const coachExperiences: { pid: string, text: string }[] = []
@@ -703,11 +720,11 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     if (text) coachExperiences.push({ pid: p.prolific_pid, text })
   }
   if (coachExperiences.length > 0) {
-    html += `<h2>Coach Experience — Open-Ended (A2 only)</h2><table><thead><tr><th>PID</th><th>Response</th></tr></thead><tbody>`
+    html += `<h2>Coach Experience — Open-Ended (A2 only)</h2><div class="scroll-box"><table><thead><tr><th>PID</th><th>Response</th></tr></thead><tbody>`
     for (const ce of coachExperiences) {
       html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(ce.pid.slice(0, 20))}</td><td style="font-size:0.8rem;max-width:700px">${escapeHtml(ce.text)}</td></tr>`
     }
-    html += `</tbody></table>`
+    html += `</tbody></table></div>`
   }
 
   // --- Open-Ended: Process Reflections (all conditions) ---
@@ -719,18 +736,18 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     if (text) processReflections.push({ pid: p.prolific_pid, cell: `${p.condition_a}×${p.condition_b}`, text })
   }
   if (processReflections.length > 0) {
-    html += `<h2>Process Reflections — Open-Ended</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Response</th></tr></thead><tbody>`
+    html += `<h2>Process Reflections — Open-Ended</h2><div class="scroll-box"><table><thead><tr><th>PID</th><th>Cell</th><th>Response</th></tr></thead><tbody>`
     for (const pr of processReflections) {
       html += `<tr><td style="font-size:0.7rem;font-family:monospace">${escapeHtml(pr.pid.slice(0, 20))}</td><td><span class="pill pill-gray">${pr.cell}</span></td><td style="font-size:0.8rem;max-width:600px">${escapeHtml(pr.text)}</td></tr>`
     }
-    html += `</tbody></table>`
+    html += `</tbody></table></div>`
   }
 
   // --- Anchoring Visions (B2 only) ---
   interface AnchoringRow { participant_id: number, pleasure_vision: string, pain_vision: string }
   const anchoringData = db.prepare('SELECT * FROM anchoring').all() as AnchoringRow[]
   if (anchoringData.length > 0) {
-    html += `<h2>Pleasure &amp; Pain Visions (B2 only)</h2><table><thead><tr><th>PID</th><th>Cell</th><th>Pleasure Vision</th><th>Pain Vision</th></tr></thead><tbody>`
+    html += `<h2>Pleasure &amp; Pain Visions (B2 only)</h2><div class="scroll-box"><table><thead><tr><th>PID</th><th>Cell</th><th>Pleasure Vision</th><th>Pain Vision</th></tr></thead><tbody>`
     for (const a of anchoringData) {
       const p = participants.find(p => p.id === a.participant_id)
       if (!p) continue
@@ -739,7 +756,7 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
       html += `<td style="font-size:0.78rem;max-width:350px">${escapeHtml(a.pleasure_vision)}</td>`
       html += `<td style="font-size:0.78rem;max-width:350px">${escapeHtml(a.pain_vision)}</td></tr>`
     }
-    html += `</tbody></table>`
+    html += `</tbody></table></div>`
   }
 
   // --- Charts ---
@@ -925,10 +942,10 @@ new Chart(document.getElementById('chartRecruit'), {
     labels: cellLabels,
     datasets: [
       { label: 'Completed', data: ${JSON.stringify(recruitmentRows.map(r => r.completed))}, backgroundColor: cellColors },
-      { label: 'Target', data: [50,50,50,50], backgroundColor: 'rgba(0,0,0,0)', borderColor: '#d4d4d8', borderWidth: 1, borderDash: [4,4] }
+      { label: 'Target', data: [32,32,32,32], backgroundColor: 'rgba(0,0,0,0)', borderColor: '#d4d4d8', borderWidth: 1, borderDash: [4,4] }
     ]
   },
-  options: { scales: { y: { beginAtZero: true, max: 60 } }, plugins: { legend: { display: true } } }
+  options: { scales: { y: { beginAtZero: true, max: 40 } }, plugins: { legend: { display: true } } }
 });
 
 // Self-Efficacy Pre/Post
