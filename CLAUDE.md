@@ -47,7 +47,7 @@ The paper.tex has several items that don't match the current implementation:
 
 ## Study Design
 
-Full design doc: `/Users/simohosio/Documents/Academic/Papers/Launchpad/docs/study1_design.md`
+Full design doc lives in the local Paper repo (see `CLAUDE.local.md`).
 
 - **Factor A:** A1 (No AI) vs A2 (AI Coach with SMART refinement loop)
 - **Factor B:** B1 (No Anchoring) vs B2 (Energy priming + pleasure/pain visioning)
