@@ -767,10 +767,22 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
   html += `<div class="chart-box"><h3>Refinement Round Distribution (A2)</h3><canvas id="chartRounds"></canvas></div>`
   html += `</div>`
 
-  // Row 4: Quality Trajectory + Dimension Compliance
+  // Row 4: Quality Trajectory + Self-Efficacy Δ
   html += `<div class="chart-row">`
   html += `<div class="chart-box"><h3>Quality Trajectory by Round (Mean Score)</h3><canvas id="chartTrajectory"></canvas></div>`
   html += `<div class="chart-box"><h3>Self-Efficacy Change (Δ)</h3><canvas id="chartDelta"></canvas></div>`
+  html += `</div>`
+
+  // Row 5: KGC Δ + Energy Δ (main effect deltas)
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>KGC Commitment Change (Δ)</h3><canvas id="chartKgcDelta"></canvas></div>`
+  html += `<div class="chart-box"><h3>Energy Change (Δ)</h3><canvas id="chartEnergyDelta"></canvas></div>`
+  html += `</div>`
+
+  // Row 6: Word count + Session duration
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>Final Goal Word Count</h3><canvas id="chartWords"></canvas></div>`
+  html += `<div class="chart-box"><h3>Session Duration (min)</h3><canvas id="chartDuration"></canvas></div>`
   html += `</div>`
 
   // Prepare trajectory data: mean quality score per dimension per round (weak=1, adequate=2, strong=3)
@@ -803,6 +815,90 @@ router.get('/dash', requireAdmin, (_req: Request, res: Response) => {
     }
     deltaData[c] = deltas.length > 0 ? mean(deltas) : 0
   }
+
+  // Per-cell deltas for KGC and Energy, plus word count and duration
+  function cellDelta(c: string, fn: (pre: any, post: any) => number | null): number {
+    const arr: number[] = []
+    for (const p of participants.filter(p => `${p.condition_a}_${p.condition_b}` === c)) {
+      const pre = preSurveys.get(p.id); const post = postSurveys.get(p.id)
+      if (pre && post) { const v = fn(pre, post); if (v !== null && !isNaN(v)) arr.push(v) }
+    }
+    return arr.length ? +mean(arr).toFixed(2) : 0
+  }
+  const kgcDeltaData = cells.map(c => cellDelta(c, (pre, post) => {
+    const a = kgcComposite(pre); const b = kgcComposite(post)
+    return a !== null && b !== null ? b - a : null
+  }))
+  const energyDeltaData = cells.map(c => cellDelta(c, (pre, post) => {
+    const a = Number(pre.baseline_energy); const b = Number(post.post_baseline_energy)
+    return !isNaN(a) && !isNaN(b) ? b - a : null
+  }))
+  const wordCountByCell = cells.map(c => {
+    const wcs = allGoalTexts.filter(g => `${g.condA}_${g.condB}` === c).map(g => g.wc_final)
+    return wcs.length ? +mean(wcs).toFixed(1) : 0
+  })
+  const durationByCell = cells.map(c => +mean(cellData[c].session_mins).toFixed(2))
+
+  // Human ratings by cell (final goals): holistic + per-dimension
+  const humanRatingsByCell: Record<string, { holistic: number, specific: number, measurable: number, achievable: number, relevant: number, timebound: number }> = {}
+  let humanRatingsAvailable = false
+  try {
+    const rows = db.prepare(`
+      SELECT gr.goal_id,
+        AVG(gr.rating_specific) as specific, AVG(gr.rating_measurable) as measurable,
+        AVG(gr.rating_achievable) as achievable, AVG(gr.rating_relevant) as relevant,
+        AVG(gr.rating_timebound) as timebound, AVG(gr.rating_holistic) as holistic
+      FROM goal_ratings gr WHERE gr.goal_version = 'final' GROUP BY gr.goal_id
+    `).all() as any[]
+    if (rows.length > 0) humanRatingsAvailable = true
+    const goalToCond = new Map<number, string>()
+    for (const p of participants) {
+      const g = participantGoals.get(p.id)
+      if (g) goalToCond.set(g.id, `${p.condition_a}_${p.condition_b}`)
+    }
+    for (const c of cells) {
+      const cellRows = rows.filter(r => goalToCond.get(r.goal_id) === c)
+      const avg = (k: string) => cellRows.length ? +(cellRows.reduce((s, r) => s + (r[k] || 0), 0) / cellRows.length).toFixed(2) : 0
+      humanRatingsByCell[c] = { holistic: avg('holistic'), specific: avg('specific'), measurable: avg('measurable'), achievable: avg('achievable'), relevant: avg('relevant'), timebound: avg('timebound') }
+    }
+  } catch {}
+
+  // AI telemetry: final-round per-dimension mean score (1=weak,2=adequate,3=strong) by A2 cell
+  const aiFinalByCell: Record<string, { specific: number, measurable: number, achievable: number, relevant: number, timeBound: number }> = {}
+  for (const c of cells) {
+    aiFinalByCell[c] = { specific: 0, measurable: 0, achievable: 0, relevant: 0, timeBound: 0 }
+    const ps = participants.filter(p => `${p.condition_a}_${p.condition_b}` === c && p.condition_a === 'A2')
+    if (ps.length === 0) continue
+    const dimSums: Record<string, number[]> = { specific: [], measurable: [], achievable: [], relevant: [], timeBound: [] }
+    for (const p of ps) {
+      const g = participantGoals.get(p.id); if (!g) continue
+      const rs = goalRounds.get(g.id) || []
+      if (rs.length === 0) continue
+      const last = rs.sort((a, b) => b.round_number - a.round_number)[0]
+      try {
+        const dims = JSON.parse(last.ai_dimensions_json)
+        for (const d of Object.keys(dimSums)) {
+          const r = dims[d]?.rating
+          if (r) dimSums[d].push(ratingToScore(r))
+        }
+      } catch {}
+    }
+    for (const d of Object.keys(dimSums) as (keyof typeof aiFinalByCell[string])[]) {
+      aiFinalByCell[c][d] = dimSums[d].length ? +(dimSums[d].reduce((a, b) => a + b, 0) / dimSums[d].length).toFixed(2) : 0
+    }
+  }
+
+  // Insert Human Ratings + AI Telemetry chart rows into HTML before script
+  if (humanRatingsAvailable) {
+    html += `<div class="chart-row">`
+    html += `<div class="chart-box"><h3>Human Goal Quality — Overall (Final)</h3><canvas id="chartHumanHolistic"></canvas></div>`
+    html += `<div class="chart-box"><h3>Human Ratings — SMART Dimensions</h3><canvas id="chartHumanDims"></canvas></div>`
+    html += `</div>`
+  }
+  html += `<div class="chart-row">`
+  html += `<div class="chart-box"><h3>AI Telemetry — Final Goal Quality (A2 cells)</h3><canvas id="chartAiFinal"></canvas></div>`
+  html += `<div class="chart-box"><h3>Frustration vs Helpfulness</h3><canvas id="chartFrustHelp"></canvas></div>`
+  html += `</div>`
 
   // Round distribution for chart
   const maxRoundForChart = Math.max(...roundCounts, 1)
@@ -924,6 +1020,87 @@ new Chart(document.getElementById('chartDelta'), {
     datasets: [{ label: 'Δ Self-Efficacy', data: ${JSON.stringify(cells.map(c => +(deltaData[c]).toFixed(2)))}, backgroundColor: cellColors }]
   },
   options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+// KGC Δ
+new Chart(document.getElementById('chartKgcDelta'), {
+  type: 'bar',
+  data: { labels: cellLabels, datasets: [{ label: 'Δ KGC', data: ${JSON.stringify(kgcDeltaData)}, backgroundColor: cellColors }] },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+// Energy Δ
+new Chart(document.getElementById('chartEnergyDelta'), {
+  type: 'bar',
+  data: { labels: cellLabels, datasets: [{ label: 'Δ Energy', data: ${JSON.stringify(energyDeltaData)}, backgroundColor: cellColors }] },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+// Word count
+new Chart(document.getElementById('chartWords'), {
+  type: 'bar',
+  data: { labels: cellLabels, datasets: [{ label: 'Final words', data: ${JSON.stringify(wordCountByCell)}, backgroundColor: cellColors }] },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+// Session duration
+new Chart(document.getElementById('chartDuration'), {
+  type: 'bar',
+  data: { labels: cellLabels, datasets: [{ label: 'Minutes', data: ${JSON.stringify(durationByCell)}, backgroundColor: cellColors }] },
+  options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+});
+
+${humanRatingsAvailable ? `
+// Human ratings - holistic
+new Chart(document.getElementById('chartHumanHolistic'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [{ label: 'Holistic (1-5)', data: ${JSON.stringify(cells.map(c => humanRatingsByCell[c].holistic))}, backgroundColor: cellColors }]
+  },
+  options: { scales: { y: { min: 1, max: 5 } }, plugins: { legend: { display: false } } }
+});
+
+// Human ratings - SMART dimensions grouped by cell
+new Chart(document.getElementById('chartHumanDims'), {
+  type: 'bar',
+  data: {
+    labels: ['Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-Bound'],
+    datasets: ${JSON.stringify(cells.map((c, i) => ({
+      label: cellLabel(c.split('_')[0], c.split('_')[1]),
+      data: [humanRatingsByCell[c].specific, humanRatingsByCell[c].measurable, humanRatingsByCell[c].achievable, humanRatingsByCell[c].relevant, humanRatingsByCell[c].timebound],
+      backgroundColor: cellColors[i],
+    })))}
+  },
+  options: { scales: { y: { min: 1, max: 5 } } }
+});
+` : ''}
+
+// AI telemetry - final ratings per A2 cell
+new Chart(document.getElementById('chartAiFinal'), {
+  type: 'bar',
+  data: {
+    labels: ['Specific', 'Measurable', 'Achievable', 'Relevant', 'Time-Bound'],
+    datasets: ${JSON.stringify(cells.filter(c => c.startsWith('A2')).map(c => ({
+      label: cellLabel(c.split('_')[0], c.split('_')[1]),
+      data: [aiFinalByCell[c].specific, aiFinalByCell[c].measurable, aiFinalByCell[c].achievable, aiFinalByCell[c].relevant, aiFinalByCell[c].timeBound],
+      backgroundColor: c === 'A2_B1' ? '#f97316' : '#0ea5e9',
+    })))}
+  },
+  options: { scales: { y: { min: 1, max: 3, title: { display: true, text: '1=weak 2=adequate 3=strong' } } } }
+});
+
+// Frustration vs Helpfulness
+new Chart(document.getElementById('chartFrustHelp'), {
+  type: 'bar',
+  data: {
+    labels: cellLabels,
+    datasets: [
+      { label: 'Helpfulness', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].process_help).toFixed(2)))}, backgroundColor: '#22c55e' },
+      { label: 'Frustration', data: ${JSON.stringify(cells.map(c => +mean(cellData[c].process_frust).toFixed(2)))}, backgroundColor: '#ef4444' }
+    ]
+  },
+  options: { scales: { y: { min: 1, max: 7 } } }
 });
 </script>`
 
