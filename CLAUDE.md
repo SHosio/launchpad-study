@@ -12,38 +12,21 @@ Standalone research instrument for Study 1: "Beneficial Friction: How AI Coachin
 
 **This is NOT part of Edge Academia Portal.** It's an independent project with its own repo, deployment, and database.
 
-## Current Status (as of April 2026)
+## Current Status (as of 2026-04-08)
 
 **Data collection complete.** N=128 completers (31-33 per cell), matching the power analysis target (G*Power: f=0.25, α=.05, power=.80, total N=128). Data is on Railway production. Analysis notebooks are in `analysis/`.
 
-### Key Decisions Made During This Session
+**Results section is fully drafted.** §4.1 (Sample/data quality), §4.2 (Overview), §4.3 (AI coaching effects), §4.4 (Anchoring effects), §4.5 (KGC interaction), and §4.6 (Inside the AI coaching loop) are all written, all in APA style with U/z/p/d for MWU and T/z/p/r for Wilcoxon. Every number in the Results section traces to a printed cell output in one of the four notebooks.
 
-1. **Population broadened** from "early-career academics" to "graduate-educated adults" (master's/doctorate enrolled or completed + bachelor's). Prolific screener: English primary language, 95-100% approval rate, 200+ submissions, anglophone countries.
+**Still TODO in the paper:** Abstract rewrite (still says N=400/NGSE/follow-up), Pilot study subsection, master results table at top of §4, demographics insertion in §4.1, full Discussion section, full Conclusion section.
 
-2. **1-week follow-up omitted.** Self-efficacy was null at two time points; a third null measurement adds no value. Follow-up saved for Paper 2 (iterative AI coach redesign).
+### Outstanding paper TODOs
 
-3. **Human goal quality rating system built and seeded on production.** Batched Prolific rating task (`server/routes/rating.ts`). 1-5 SMART rubric + holistic, batches of 8 goals, 5 raters per batch. Initial (A2 only) and final goals mixed in same batches — constraint ensures no rater sees both versions from the same participant. **Seeded:** 191 goals (128 final + 63 initial), 24 batches, 120 rater slots. **Remaining:** create Prolific study for raters, completion code `RATE_COMPLETE_2026`.
-
-4. **Power analysis revised.** Original design doc said N=200 (50/cell), paper draft had N=400 (100/cell). Final: N=128 (32/cell) based on G*Power for medium effect f=0.25. Justified as minimum practically meaningful threshold for design implications.
-
-5. **Coach perception items changed** from 1-5 agree/disagree statements to 1-7 direct questions to match all other custom scales. Dashboard labels updated to match.
-
-6. **Priming compliance open-ended dropped** ("What did you do to prepare yourself?"). Only the energization scale remains. Reduces friction in the B2 flow.
-
-7. **AI coaching prompt tightened.** Socratic tone, stricter rating calibration ("adequate" is the default for first drafts, "strong" reserved for genuinely precise goals). Mandatory first revision before exit option appears.
-
-### Paper vs Code Discrepancies to Resolve
-
-The paper.tex has several items that don't match the current implementation:
-
-- **Abstract says N=400** — needs updating to N=128
-- **Abstract mentions NGSE** — we use single-item self-efficacy, not the 8-item NGSE scale
-- **Abstract mentions 1-week follow-up** — omitted from this study
-- **Coach perception section says 5-point Likert agree/disagree** — code uses 1-7 direct questions
-- **Participants section says "master's degree or currently enrolled in master's/doctoral"** — we also accept bachelor's completers
-- **Pilot study section** is a TODO placeholder
-- **Results/Discussion/Conclusion** are all TODO placeholders
-- **Prolific completion code** is set to `CGYZ74XJ` in CompletePage.tsx
+- Abstract still says N=400, NGSE, and 1-week follow-up — needs to match the actual study (N=128, single-item self-efficacy, no follow-up)
+- Pilot study subsection (§3.x) is a TODO placeholder
+- Discussion (§5) and Conclusion (§6) are TODO placeholders
+- Master results table at top of §4 (TODO comment in §4.2)
+- Demographics insertion in §4.1 (TODO comment)
 
 ## Study Design
 
@@ -58,89 +41,33 @@ Full design doc lives in the local Paper repo (see `CLAUDE.local.md`).
   - Goal self-efficacy (single item, 1-7, pre/post)
   - KGC goal commitment (5 items, 1-5, pre/post) — Klein et al. 2001, items 1,2,4 reverse-coded
   - Energy (1-7, pre/post)
-  - Goal clarity (1-7, post only)
-  - Readiness (1-7, post only)
-  - Process helpfulness (1-7, post only)
-  - Process frustration (1-7, post only)
+  - Goal clarity, readiness, helpfulness, frustration (1-7, post only)
   - Coach perception (A2 only): 3 direct 1-7 questions + 1 open-ended
   - Refinement process data (A2 only): per-round goal text, AI ratings, flagged dimensions, timestamps
 
-## Significant Findings at N=128
+## Statistical Conventions
 
-**All numbers below are MWU + Cohen's d (paper convention).** ANOVA F-values are NOT used in the paper text except for the single 2×2 interaction test on KGC delta (no nonparametric equivalent). Do not reuse the older F-values that previously lived in this section — they were exploratory only.
+These are the rules the paper follows. **Do not deviate without flagging it.**
 
-### Factor A — AI Coaching (MWU, standalone tests):
-- **Frustration:** U=1239, p<.0001, d=+0.77 (A1=2.00, A2=3.30)
-- **Final word count:** U=961, p<.0001, d=+0.90 (A1=50.8, A2=95.0)
-- **Session duration:** U=836, p<.0001, d=+0.88 (A1=9.9 min, A2=16.8 min)
-- **A2 word count doubles within-person:** 51.3→95.0, Wilcoxon W=28, p<.0001 (n=58 paired)
-- **All 5 SMART dimensions improve R1→R2** in AI ratings (all p<.015, n=61 paired) — telemetry, not paper headline
-- **Text features:** dates 40%→87% (χ²=28.8, p<.0001), numbers 69%→95% (χ²=13.0, p=.0003), deadline words 45%→86% (χ²=21.9, p<.0001)
-- Self-efficacy change: NULL (U=2180, p=.49, d=−0.13)
-
-### Factor B — Anchoring (MWU, Family 1 with BH FDR k=5, all five survive at q<.05):
-- **Goal clarity:** p=.026, q=.032, d=+0.45 (B1=5.92, B2=6.34)
-- **KGC commitment change:** p=.012, q=.025, d=+0.39 (B1 Δ=0.06, B2 Δ=0.21)
-- **Energy change:** p=.015, q=.025, d=+0.48 (B1 Δ=0.30, B2 Δ=0.69)
-- **Process helpfulness:** p=.002, q=.012, d=+0.45 (B1=5.17, B2=5.77)
-- **Readiness:** p=.040, q=.040, d=+0.35 (B1=5.72, B2=6.09) — survives BH by a hair, do NOT call this "marginal"
-- **Priming manipulation check:** energy 5.09→5.63, Wilcoxon p<.0001
-- Self-efficacy change: NULL (d=+0.11)
-
-### Interaction (only test where 2×2 ANOVA is canonical, no MWU equivalent):
-- **KGC delta:** F(1,124)=5.35, p=.022, η²ₚ=.041. Cell means: A1B1=0.14, A1B2=0.14, A2B1=−0.03, A2B2=0.28. AI alone flatlines commitment; AI+anchoring produces the largest gain.
-
-### Process Data (A2 only, n=63):
-- Mean 5.7 rounds, median 5, max 24
-- 52.5% dimension-specific compliance (targeted the flagged dimension)
-- Exit reasons: 30 reached all-strong (48%, no exit prompt), 25 satisfied (40%), 6 enough_time (10%), 3 not_helpful (5%)
-- Coach perception: useful 4.92/7, demanding 3.64/7, reuse 4.36/7
-
-### Human-Rated Goal Quality (notebook 04):
-- **AI coaching main effect (SMART composite, standalone):** U=804, p<.0001, d=+1.21 (A1=3.39, A2=4.20 on 1–5 SMART composite). Holistic standalone: U=880, p<.0001, d=+1.12.
-- **Anchoring:** null (p=.75, d=+0.11). No interaction.
-- **Within-person (A2):** All 5 SMART dimensions improve initial→final (all p<.01). Time-Bound largest (+0.83), Achievable smallest (+0.27).
-- **AI-human calibration:** Significant Spearman on Specific (ρ=.56), Time-Bound (.48), Measurable (.36), Achievable (.30), Relevant (.29). Overall: not significant (.23). AI is systematically stricter than humans.
-- **Rounds × quality:** ρ=.32, p=.01 (more rounds → better quality, modest)
-- **Inter-rater reliability:** Krippendorff's α = .24–.49 (low; rating on 1-5 is hard)
-
-### LIWC Findings (notebook 03):
-- **cause increases with AI coaching:** p=.002, q=.015 (BH FDR within 7-test family). Survives correction. More causal reasoning from explaining "why".
-- **Authentic decreases (trend):** p=.023, q=.057. Does NOT survive BH FDR. Direction consistent with structure-genuineness tradeoff but underpowered. Likely resolves with larger N.
-- **focusfuture increases (trend):** p=.024, q=.057. Does NOT survive BH FDR. Same caveat.
-- **Analytic, cogproc, achieve, Tone:** all null.
-- **Vision manipulation check (k=3 family, all survive):** Tone 87 vs 49 (p<.0001), emo_pos 3.28 vs 0.76 (p<.0001), emo_neg 0.59 vs 2.81 (p=.0002). Anchoring exercise worked.
-
-### Paper Narrative:
-AI coaching and emotional anchoring target completely different mechanisms. AI coaching transforms goal *artifacts* (longer and substantially higher human-rated quality on all 5 SMART dimensions, with more causal reasoning in the language) but increases frustration without improving psychological readiness. Anchoring transforms *psychological state* (clarity, commitment, energy, perceived helpfulness, readiness) without changing the goal text. The combination produces both better goals and better psychological readiness. Self-efficacy is null everywhere — a 10-minute intervention doesn't move self-reported confidence. Human ratings validate the AI telemetry with a very large effect (d=1.21). AI is well-calibrated on structural dimensions but over-rates difficulty on subjective ones, supporting lighter-touch coaching in Paper 2. LIWC `cause` increases under coaching (deeper "why" reasoning); Authentic and focusfuture trend in expected directions but do not survive BH FDR correction within the 7-test family, likely an N issue. Only 5% of coached participants found feedback unhelpful; 48% persisted to all-strong — frustration is predominantly productive.
-
-### Statistical Conventions (paper):
-- **Mann-Whitney U** for all main-effect tests (Shapiro-Wilk shows normality violations on most DVs).
-- **2x2 ANOVA** reserved only for the interaction test (no nonparametric equivalent).
-- **Benjamini-Hochberg FDR within families of conceptually related tests.** Families: F1=psychological readiness x B (5 DVs), F3=SMART subscales x A (5 DVs), F4=LIWC goal-text x A (7 DVs), F5=vision LIWC (3 DVs). F2 (goal-quality composite + word count) and self-efficacy/frustration/duration stand alone. BH cells live in notebooks 02 (F1), 03 (F4+F5), and 04 (F3).
-
-### Scale Reliability:
-- KGC Cronbach's α: pre=.704, post=.712 (acceptable, ≥.70)
-
-### Normality:
-- Violated on most DVs (Shapiro-Wilk). Paper reports MWU directly (not as robustness check) and uses ANOVA only for the 2x2 interaction.
-
-### Randomization:
-- Clean — no pre-measure differences on any variable.
+- **Mann-Whitney U** for all main-effect tests (Shapiro-Wilk shows normality violated on most DVs).
+- **2×2 ANOVA only for the KGC delta interaction test** (no nonparametric equivalent for an interaction term).
+- **Benjamini-Hochberg FDR within families of conceptually related tests.** Families: F1 (psychological readiness × B, k=5), F3 (SMART subscales × A, k=5), F4 (LIWC goal-text × A, k=7), F5 (vision LIWC × text type, k=3). Standalones (no correction): SMART composite, holistic, word count, frustration, session duration, self-efficacy, KGC interaction.
+- **APA reporting:** MWU as `U, z, p, d`. Wilcoxon signed-rank as `T, z, p, r`. ANOVA as `F(df), p, η²ₚ`. Cohen's d (not rank-biserial). p-values capped at `p < .001`. No `+` signs on positive d values.
+- KGC scale Cronbach's α: pre=.70, post=.71 (acceptable).
 
 ## Analysis
 
 Jupyter notebooks in `analysis/` (gitignored — not in public repo). **Run in VS Code with `notebook.output.textLineLimit` set high (e.g. 500) to see full results.** Run in order: 01 → 02 → 03 → 04.
 
-- `01_data_loading.ipynb` — Load SQLite, parse JSON, compute KGC composites, build clean analysis dataframe, demographics, descriptives. Saves `data/analysis_clean.csv` and `data/ratings_clean.csv`.
-- `02_inferential.ipynb` — **Main effects.** Cronbach's alpha, normality checks, randomization checks, per-DV 2x2 ANOVAs (kept as exploratory), ANCOVAs, word count analysis, summary table. **Cell 21 = PRIMARY TEST for Family 1** (psychological readiness × Factor B, MWU + BH FDR + Cohen's d, k=5). All 5 DVs (clarity, KGC Δ, energy Δ, helpfulness, readiness) survive at q<.05.
-- `03_process_and_linguistic.ipynb` — **Process data + LIWC.** Refinement round distribution, quality trajectory (AI ratings R1→R2 with Wilcoxon), dimension-specific compliance (52.5%), exit reasons (30 all-strong, 25 satisfied, 6 enough_time, 3 not_helpful), word count, priming manipulation check, coach perception, **LIWC-22 analysis** (4 exploratory analyses + canonical Family 4/5 cell). **Cell 20 = PRIMARY TEST for Families 4 & 5** (LIWC goal-text × A k=7; vision LIWC × type k=3). Under BH only `cause` survives in F4 (d=+0.42, q=.015); Authentic (d=−0.37) and focusfuture (d=+0.35) trend at q=.057 but do NOT survive — report as directional trends. F5 vision manipulation check all survive trivially (Tone d=+1.16, emo_pos d=+0.70, emo_neg d=−0.60).
-- `04_human_ratings.ipynb` — **Independent human ratings.** Inter-rater reliability (Krippendorff's α = .24–.49), 2x2 ANOVA on holistic composite (kept exploratory), within-person initial→final change (A2 only), AI vs human calibration (Spearman: Specific ρ=.56, Time-Bound ρ=.48; AI systematically stricter), rounds × quality (ρ=.32). **Cell 22 = PRIMARY TEST for Family 3** (5 SMART subscales × Factor A, MWU + BH FDR + Cohen's d, k=5). All 5 survive trivially: Specific d=+0.94, Measurable d=+0.92, Achievable d=+0.87, Relevant d=+1.06, Time-Bound d=+1.24. Holistic composite standalone: A1 mean=3.16, A2 mean=3.99, p<.001, **d=+1.12** (NOT 1.21; the older value was an ANOVA-derived approximation).
+- `01_data_loading.ipynb` — Load SQLite, parse JSON, compute KGC composites, demographics, descriptives. Saves `data/analysis_clean.csv` and `data/ratings_clean.csv`.
+- `02_inferential.ipynb` — Main effects on the survey DVs: psychological readiness (Family 1), standalones (frustration, word count, session duration, self-efficacy), and the 2×2 KGC interaction with simple-effect decomposition.
+- `03_process_and_linguistic.ipynb` — A2 process data (rounds, exits, R1→R2 quality, dimension compliance, coach perception) and LIWC analyses (Family 4 goal-text × A, Family 5 vision manipulation check, Factor B null on goal text).
+- `04_human_ratings.ipynb` — Independent human SMART ratings: inter-rater reliability, SMART composite × A, holistic × A, Family 3 subscales × A, AI vs human calibration, rounds × quality.
 
-**IMPORTANT — Notebook convention.** Each notebook has a `## PRIMARY TEST` markdown banner above the family-corrected cell. The per-DV ANOVA cells preceding it are kept for diagnostic purposes; the PRIMARY TEST cell is what the paper reports. Helper functions inside those cells use Cohen's d (not rank-biserial) because it's more familiar to HCI readers. The cells are heavily commented for non-Python readers.
+**Notebook convention.** Each notebook has a `## PRIMARY TEST` (or similar) markdown banner above the cell whose printed output is the paper's canonical source for that family or test. Per-DV ANOVA cells preceding the PRIMARY TEST are diagnostic only. **Numerical findings live in the notebook cell outputs, not in this file.** When the paper needs a number, read it from the executed `.ipynb` cell output, do not recompute it in a one-off script.
 
 ### LIWC Integration
-Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring visions, tagged by condition and text type). Run through LIWC-22 externally, save output as `data/liwc_processed.csv`, then notebook 03 imports and analyzes. Categories used: Analytic, Authentic, Tone, cogproc, achieve, focusfuture, certitude, tentat, need, want, fulfill, insight, cause, Affect, emo_pos, emo_neg, tone_pos, tone_neg, emotion.
+Notebook 03 exports `data/goals_for_liwc.csv` (all goal texts + anchoring visions, tagged by condition and text type). Run through LIWC-22 externally, save output as `data/liwc_processed.csv`, then notebook 03 imports and analyzes. Categories analyzed: Analytic, Authentic, Tone, cogproc, achieve, focusfuture, cause, emo_pos, emo_neg.
 
 ### Data Issues
 - PID 122: duplicate pre/post/goal records (page refresh). Handled by taking last per participant.
