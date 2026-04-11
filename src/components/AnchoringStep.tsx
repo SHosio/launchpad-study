@@ -5,11 +5,12 @@ import { Textarea } from './ui/Textarea'
 
 interface AnchoringStepProps {
   onComplete: (pleasureVision: string, painVision: string) => void
+  autoFill?: boolean
 }
 
-export function AnchoringStep({ onComplete }: AnchoringStepProps) {
-  const [pleasure, setPleasure] = useState('')
-  const [pain, setPain] = useState('')
+export function AnchoringStep({ onComplete, autoFill }: AnchoringStepProps) {
+  const [pleasure, setPleasure] = useState(autoFill ? 'I feel accomplished and proud. My certification opens new career doors and I wake up excited about the possibilities ahead. My colleagues notice the change and I feel confident in meetings.' : '')
+  const [pain, setPain] = useState(autoFill ? 'Nothing changes. I stay stuck in the same role, watching others advance. The frustration of inaction weighs on me daily and I regret not starting when I had the chance.' : '')
 
   const canContinue = pleasure.trim().length >= 20 && pain.trim().length >= 20
 

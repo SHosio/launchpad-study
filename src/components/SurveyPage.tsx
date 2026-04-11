@@ -8,15 +8,34 @@ interface SurveyPageProps {
   onComplete: (results: Record<string, unknown>) => void
   title?: string
   onCurrentPageChanged?: () => void
+  autoFill?: boolean
 }
 
-export function SurveyPage({ surveyJson, onComplete, title, onCurrentPageChanged }: SurveyPageProps) {
+function randomChoice(choices: { value: unknown }[]) {
+  return choices[Math.floor(Math.random() * choices.length)].value
+}
+
+export function SurveyPage({ surveyJson, onComplete, title, onCurrentPageChanged, autoFill }: SurveyPageProps) {
   const handleComplete = useCallback((sender: Model) => {
     onComplete(sender.data)
   }, [onComplete])
 
   const survey = new Model(surveyJson)
   survey.showCompletedPage = false
+
+  // Pre-fill all questions with random valid answers for test mode
+  if (autoFill) {
+    survey.getAllQuestions().forEach((q: any) => {
+      if (q.getType() === 'html') return
+      if (q.choices && q.choices.length > 0) {
+        q.value = randomChoice(q.choices)
+      } else if (q.getType() === 'text' && q.inputType === 'number') {
+        q.value = Math.floor(Math.random() * 40) + 20
+      } else if (q.getType() === 'text' || q.getType() === 'comment') {
+        q.value = 'Test response ' + Math.random().toString(36).slice(2, 8)
+      }
+    })
+  }
 
   // Light theme overrides
   survey.applyTheme({

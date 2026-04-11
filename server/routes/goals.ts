@@ -6,6 +6,9 @@ const router = Router()
 router.post('/', (req, res) => {
   const { participant_id, initial_text, writing_start_at } = req.body
 
+  // Test participants (id = -1) get a fake goal_id
+  if (participant_id === -1) return res.json({ goal_id: -1 })
+
   const result = db.prepare(
     'INSERT INTO goals (participant_id, initial_text, goal_writing_start_at) VALUES (?, ?, ?)'
   ).run(participant_id, initial_text, writing_start_at)
@@ -23,6 +26,8 @@ router.get('/by-participant/:participantId', (req, res) => {
 })
 
 router.post('/:id/finalize', (req, res) => {
+  if (req.params.id === '-1') return res.json({ ok: true })
+
   const { final_text, exit_reason } = req.body
 
   db.prepare(`

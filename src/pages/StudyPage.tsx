@@ -71,6 +71,7 @@ export default function StudyPage() {
   const condAParam = variant?.a || searchParams.get('condition_a') || undefined
   const condBParam = variant?.b || searchParams.get('condition_b') || undefined
   const prolificPid = searchParams.get('PROLIFIC_PID') || searchParams.get('prolific_pid') || `test_${Date.now()}`
+  const isTestMode = prolificPid.startsWith('test')
   const studyId = searchParams.get('STUDY_ID') || ''
   const sessionId = searchParams.get('SESSION_ID') || ''
 
@@ -189,15 +190,15 @@ export default function StudyPage() {
     <div className="min-h-screen bg-white text-zinc-900 py-8 px-4">
       <ProgressBar steps={stepLabels} currentStep={currentIdx} />
 
-      {step === 'demographics' && <SurveyPage surveyJson={demographicsSurvey} onComplete={handleDemographics} />}
-      {step === 'pre_measure' && <SurveyPage surveyJson={preMeasureSurvey} onComplete={handlePreMeasure} />}
+      {step === 'demographics' && <SurveyPage surveyJson={demographicsSurvey} onComplete={handleDemographics} autoFill={isTestMode} />}
+      {step === 'pre_measure' && <SurveyPage surveyJson={preMeasureSurvey} onComplete={handlePreMeasure} autoFill={isTestMode} />}
       {step === 'goal_readiness' && <GoalReadinessGate onReady={handleGoalReady} />}
       {step === 'priming' && <PrimingStep onComplete={handlePrimingDone} />}
-      {step === 'priming_compliance' && <SurveyPage surveyJson={primingComplianceSurvey} onComplete={handlePrimingCompliance} />}
-      {step === 'goal_writing' && <GoalWritingStep onSubmit={handleGoalSubmit} />}
+      {step === 'priming_compliance' && <SurveyPage surveyJson={primingComplianceSurvey} onComplete={handlePrimingCompliance} autoFill={isTestMode} />}
+      {step === 'goal_writing' && <GoalWritingStep onSubmit={handleGoalSubmit} autoFill={isTestMode} />}
       {step === 'coaching' && goalId && <AiRefinementLoop goalId={goalId} initialGoalText={goalText} onFinish={handleCoachingDone} />}
-      {step === 'anchoring' && <AnchoringStep onComplete={handleAnchoringDone} />}
-      {step === 'post_measure' && <SurveyPage surveyJson={buildPostMeasureSurvey(hasAI)} onComplete={handlePostMeasure} />}
+      {step === 'anchoring' && <AnchoringStep onComplete={handleAnchoringDone} autoFill={isTestMode} />}
+      {step === 'post_measure' && <SurveyPage surveyJson={buildPostMeasureSurvey(hasAI)} onComplete={handlePostMeasure} autoFill={isTestMode} />}
     </div>
   )
 }

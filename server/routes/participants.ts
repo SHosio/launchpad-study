@@ -43,11 +43,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ error: 'Missing prolific_pid' })
   }
 
-  // Return existing participant if they already started
-  const existing = db.prepare('SELECT * FROM participants WHERE prolific_pid = ?').get(prolific_pid) as any
-  if (existing) {
-    return res.json(existing)
-  }
+  const isTest = prolific_pid.startsWith('test_') || prolific_pid.startsWith('test')
 
   // Use provided conditions (from v param) or auto-assign
   let condA = condition_a
@@ -56,6 +52,28 @@ router.post('/', (req, res) => {
     const assigned = assignCondition()
     condA = assigned.a
     condB = assigned.b
+  }
+
+  // Test PIDs get a fake participant object without touching the database
+  if (isTest) {
+    return res.json({
+      id: -1,
+      prolific_pid,
+      study_id: study_id || null,
+      session_id: session_id || null,
+      condition_a: condA,
+      condition_b: condB,
+      status: 'started',
+      demographics_json: null,
+      session_start_at: new Date().toISOString(),
+      session_end_at: null,
+    })
+  }
+
+  // Return existing participant if they already started
+  const existing = db.prepare('SELECT * FROM participants WHERE prolific_pid = ?').get(prolific_pid) as any
+  if (existing) {
+    return res.json(existing)
   }
 
   const result = db.prepare(
@@ -73,6 +91,7 @@ router.get('/:prolific_pid', (req, res) => {
 })
 
 router.post('/:id/status', (req, res) => {
+  if (req.params.id === '-1') return res.json({ ok: true })
   const { status } = req.body
   const updates = status === 'completed'
     ? "status = ?, session_end_at = datetime('now')"
@@ -82,6 +101,7 @@ router.post('/:id/status', (req, res) => {
 })
 
 router.post('/:id/demographics', (req, res) => {
+  if (req.params.id === '-1') return res.json({ ok: true })
   const { demographics } = req.body
   db.prepare('UPDATE participants SET demographics_json = ? WHERE id = ?').run(JSON.stringify(demographics), req.params.id)
   res.json({ ok: true })

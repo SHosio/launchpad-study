@@ -5,10 +5,19 @@ import { Textarea } from './ui/Textarea'
 
 interface GoalWritingStepProps {
   onSubmit: (goalText: string) => void
+  autoFill?: boolean
 }
 
-export function GoalWritingStep({ onSubmit }: GoalWritingStepProps) {
-  const [goalText, setGoalText] = useState('')
+const TEST_GOALS = [
+  'Complete my AWS Solutions Architect certification by May 15, 2026 by studying 2 hours daily and passing the practice exam with 85% or higher by May 1.',
+  'Write and submit a 5000-word research paper on sustainable computing to the ACM Computing Surveys journal by June 1, 2026.',
+  'Launch my personal portfolio website with 5 project case studies by April 30, 2026, dedicating 10 hours per week to design and development.',
+]
+
+export function GoalWritingStep({ onSubmit, autoFill }: GoalWritingStepProps) {
+  const [goalText, setGoalText] = useState(
+    autoFill ? TEST_GOALS[Math.floor(Math.random() * TEST_GOALS.length)] : ''
+  )
 
   return (
     <Card className="mx-auto max-w-xl p-6 space-y-4">

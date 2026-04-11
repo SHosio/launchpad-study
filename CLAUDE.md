@@ -51,7 +51,7 @@ These are the rules the paper follows. **Do not deviate without flagging it.**
 
 - **Mann-Whitney U** for all main-effect tests (Shapiro-Wilk shows normality violated on most DVs).
 - **2×2 ANOVA only for the KGC delta interaction test** (no nonparametric equivalent for an interaction term).
-- **Benjamini-Hochberg FDR within families of conceptually related tests.** Families: F1 (psychological readiness × B, k=5), F3 (SMART subscales × A, k=5), F4 (LIWC goal-text × A, k=7), F5 (vision LIWC × text type, k=3). Standalones (no correction): SMART composite, holistic, word count, frustration, session duration, self-efficacy, KGC interaction.
+- **Benjamini-Hochberg FDR within families of conceptually related tests.** Families: F1 (psychological readiness × B, k=5), F3 (SMART subscales × A, k=5), F4 (LIWC goal-text × A, k=6; cogproc excluded because cause is its subcategory), F5 (vision LIWC × text type, k=3). Standalones (no correction): SMART composite, holistic, word count, frustration, session duration, self-efficacy, KGC interaction.
 - **APA reporting:** MWU as `U, z, p, d`. Wilcoxon signed-rank as `T, z, p, r`. ANOVA as `F(df), p, η²ₚ`. Cohen's d (not rank-biserial). p-values capped at `p < .001`. No `+` signs on positive d values.
 - KGC scale Cronbach's α: pre=.70, post=.71 (acceptable).
 
